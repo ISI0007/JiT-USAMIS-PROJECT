@@ -2,7 +2,7 @@ package com.usamis.servlet;
 
 import com.google.gson.JsonObject;
 import com.usamis.dao.AcademicDAO;
-import com.usamis.dao.UserDAO;
+import com.usamis.service.AuthService;
 import com.usamis.model.Models.User;
 import com.usamis.model.Models.UserDTO;
 import com.usamis.util.JsonUtil;
@@ -31,7 +31,7 @@ public class LoginServlet extends HttpServlet {
     private static final Logger log = LoggerFactory.getLogger(LoginServlet.class);
     private static final int SESSION_TIMEOUT = 60 * 60; // 1 hour
 
-    private final UserDAO    userDAO    = new UserDAO();
+    private final AuthService authService = new AuthService();
     private final AcademicDAO academicDAO = new AcademicDAO();
 
     @Override
@@ -85,7 +85,7 @@ public class LoginServlet extends HttpServlet {
         }
 
         // Authenticate via DAO (bcrypt verify inside)
-        Optional<User> result = userDAO.authenticate(username, password);
+        Optional<User> result = authService.authenticate(username, password);
 
         if (result.isEmpty()) {
             recordFailedAttempt(ip);
@@ -103,6 +103,8 @@ public class LoginServlet extends HttpServlet {
 
         // Create server-side session
         HttpSession session = req.getSession(true);
+        // Rotate the identifier after authentication to prevent session fixation.
+        req.changeSessionId();
         session.setAttribute("user", dto);
         session.setAttribute("roleId", user.roleId);
         session.setMaxInactiveInterval(SESSION_TIMEOUT);

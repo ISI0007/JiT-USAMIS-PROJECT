@@ -1,21 +1,4 @@
-# Maven build output
-java/target/
-*.class
-*.war
-
-# Local database configuration
+.tools/
+.env
 java/src/main/resources/db.properties
-
-# IDE and editor metadata
-.idea/
-*.iml
-.classpath
-.project
-.settings/
-.vscode/
-
-# Logs and local OS files
-*.log
-logs/
-.DS_Store
-Thumbs.db
+java/target/

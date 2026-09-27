@@ -1509,14 +1509,6 @@ const NAV_CONFIG = {
   ]
 };
 
-const USERS_DB = {
-  admin001:    { pass:'admin123', role:'admin',     name:'System Administrator', title:'System Administrator' },
-  reg001:      { pass:'reg123',   role:'registrar', name:'Wang Fang',            title:'Registrar Officer' },
-  lec001:      { pass:'lec123',   role:'lecturer',  name:'Prof. Li Gang',        title:'Lecturer' },
-  fin001:      { pass:'fin123',   role:'finance',   name:'Sun Hong',             title:'Finance Officer' },
-  stu001:      { pass:'stu123',   role:'student',   name:'Yaseen Al-Rashid',     title:'Student — Year 2' },
-};
-
 /* ─── AUTH ─── */
 function setDemo(role, user, pass) {
   document.getElementById('loginRole').value = role;
@@ -2037,7 +2029,7 @@ function renderFees() {
       <td style="text-align:right;color:${balance>0?'var(--danger)':'var(--gray-400)'}">¥${balance.toLocaleString()}</td>
       <td><span class="badge ${status==='Paid'?'badge-success':status==='Unpaid'?'badge-danger':'badge-warning'}">${status}</span></td>
       <td>${f.date}</td>
-      <td>${canEdit ? `<button class="btn btn-success btn-sm" onclick="showToast('Payment recorded!','success')">💳 Pay</button>` : '—'}</td>
+      <td>${canEdit ? `<button class="btn btn-success btn-sm" onclick="payFee(${DB.fees.indexOf(f)})">💳 Pay</button>` : '—'}</td>
     </tr>`;
   }).join('');
 }
@@ -2219,5 +2211,6 @@ function showToast(msg, type = 'info') {
   setTimeout(() => el.remove(), 3100);
 }
 </script>
+<script src="app.js"></script>
 </body>
 </html>

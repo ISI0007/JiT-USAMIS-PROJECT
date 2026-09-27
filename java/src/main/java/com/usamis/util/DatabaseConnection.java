@@ -12,7 +12,7 @@ import java.util.Properties;
 
 /**
  * HikariCP connection pool singleton.
- * Config is read from db.properties (classpath).
+ * Config is read from environment variables first, then db.properties.
  *
  * WHY: A new Connection per request is expensive (~50ms).
  * HikariCP pools keeps connections alive and reuses them,
@@ -33,19 +33,18 @@ public final class DatabaseConnection {
                 Properties props = new Properties();
                 try (InputStream is = DatabaseConnection.class
                         .getClassLoader().getResourceAsStream("db.properties")) {
-                    if (is == null) throw new RuntimeException("db.properties not found on classpath");
-                    props.load(is);
+                    if (is != null) props.load(is);
                 }
 
                 HikariConfig cfg = new HikariConfig();
-                cfg.setJdbcUrl(props.getProperty("db.url"));
-                cfg.setUsername(props.getProperty("db.user"));
-                cfg.setPassword(props.getProperty("db.password"));
+                cfg.setJdbcUrl(value("DB_URL", props, "db.url"));
+                cfg.setUsername(value("DB_USER", props, "db.user"));
+                cfg.setPassword(value("DB_PASSWORD", props, "db.password"));
                 cfg.setDriverClassName("org.postgresql.Driver");
 
                 // Pool sizing — for a university MIS: 10 connections handles ~50 concurrent users
-                cfg.setMaximumPoolSize(Integer.parseInt(props.getProperty("db.pool.max", "10")));
-                cfg.setMinimumIdle(Integer.parseInt(props.getProperty("db.pool.min", "2")));
+                cfg.setMaximumPoolSize(Integer.parseInt(value("DB_POOL_MAX", props, "db.pool.max", "10")));
+                cfg.setMinimumIdle(Integer.parseInt(value("DB_POOL_MIN", props, "db.pool.min", "2")));
                 cfg.setConnectionTimeout(30_000L);
                 cfg.setIdleTimeout(600_000L);
                 cfg.setMaxLifetime(1_800_000L);
@@ -61,6 +60,19 @@ public final class DatabaseConnection {
                 throw new RuntimeException("Database initialization failed", e);
             }
         }
+    }
+
+    private static String value(String env, Properties props, String key) {
+        return value(env, props, key, null);
+    }
+
+    private static String value(String env, Properties props, String key, String fallback) {
+        String fromEnv = System.getenv(env);
+        if (fromEnv != null && !fromEnv.isBlank()) return fromEnv;
+        String fromProps = props.getProperty(key);
+        if (fromProps != null && !fromProps.isBlank()) return fromProps;
+        if (fallback != null) return fallback;
+        throw new IllegalStateException("Missing database configuration: " + env);
     }
 
     public static Connection getConnection() throws SQLException {

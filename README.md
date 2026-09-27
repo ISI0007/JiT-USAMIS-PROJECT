@@ -88,6 +88,29 @@ usamis/
 
 ## Setup & Run
 
+### Docker Compose (recommended)
+
+This is the reproducible deployment path. It starts PostgreSQL, initializes the
+schema and seed data on the first database volume creation, builds the WAR, and
+starts Tomcat:
+
+```bash
+cp .env.example .env
+# edit .env and set a strong POSTGRES_PASSWORD
+docker compose up --build
+```
+
+The Docker Compose file uses the DaoCloud domestic proxy for Docker Hub
+images, which is useful on networks where Docker Hub is slow or unreliable.
+
+Open `http://localhost:8080/usamis/`. The database is persisted in the
+`usamis-db` Docker volume. To intentionally reset the demo database, use
+`docker compose down -v` and start it again.
+
+The application reads `DB_URL`, `DB_USER`, and `DB_PASSWORD` from the
+environment in containers, while local development can still use
+`src/main/resources/db.properties`.
+
 ### 1. Prerequisites
 - Java 17+
 - Maven 3.9+
@@ -133,7 +156,27 @@ cd java/
 mvn clean package -DskipTests
 ```
 
-### 5. Run locally
+### 5. Automated tests
+
+Run the JUnit unit tests:
+
+```bash
+cd java/
+mvn test
+```
+
+With Docker Compose running, execute the API smoke tests. They verify health,
+authentication, authorization, and the core protected endpoints:
+
+```bash
+cd ..
+./scripts/smoke-test.sh
+```
+
+Set `BASE_URL` when the application is hosted elsewhere, for example:
+`BASE_URL=http://localhost:8080/usamis ./scripts/smoke-test.sh`.
+
+### 6. Run locally
 ```bash
 # Option A: run with the Maven Tomcat plugin
 mvn tomcat10:run
@@ -147,7 +190,7 @@ cp target/usamis.war $TOMCAT_HOME/webapps/
 # Start Tomcat using its normal startup script.
 ```
 
-### 6. Access
+### 7. Access
 - Frontend: `http://localhost:8080/usamis/`
 - API:      `http://localhost:8080/usamis/api/health`
 
@@ -193,6 +236,20 @@ verified run path is local: `http://localhost:8080/usamis/` and
 | Input validation     | `ValidationUtil` + DB constraints as last resort |
 | Rate limiting        | In-memory counter (use Redis in production)      |
 | Least privilege      | Users get minimum permissions for their role     |
+
+## MVC boundaries
+
+The application is organized as a Servlet MVC application:
+
+* **Model:** `model/Models.java` and PostgreSQL schema/DAO mappings.
+* **View:** `webapp/index.html` and `webapp/app.js`.
+* **Controller:** `servlet/*` REST controllers and `filter/AuthFilter`.
+* **Service:** application policies such as `service/AuthService`.
+* **Persistence:** `dao/*` and `DatabaseConnection`.
+
+The browser no longer owns an authoritative `DB` or password list. `app.js`
+uses the REST controllers and the server-side session; writes are persisted in
+PostgreSQL and survive refreshes and container restarts.
 
 ---
 

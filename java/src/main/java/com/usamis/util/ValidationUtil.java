@@ -35,6 +35,8 @@ public final class ValidationUtil {
     public static String sanitize(String input) {
         if (input == null) return null;
         return input.trim()
+                    .replaceAll("(?is)<script[^>]*>.*?</script>", "")
+                    .replaceAll("(?is)<style[^>]*>.*?</style>", "")
                     .replaceAll("<[^>]*>", "")        // remove HTML tags
                     .replaceAll("[<>\"'%;()&+]", ""); // remove dangerous chars
     }
