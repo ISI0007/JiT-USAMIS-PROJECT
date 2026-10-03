@@ -1,18 +1,55 @@
 package com.usamis.util;
 
 import com.google.gson.*;
+import com.google.gson.TypeAdapter;
+import com.google.gson.stream.JsonReader;
+import com.google.gson.stream.JsonToken;
+import com.google.gson.stream.JsonWriter;
 import jakarta.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 public final class JsonUtil {
+
+    private static final DateTimeFormatter DT_FMT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
     private static final Gson GSON = new GsonBuilder()
             .setDateFormat("yyyy-MM-dd HH:mm:ss")
             .setPrettyPrinting()
             .serializeNulls()
+            // Gson cannot reflect over java.time types under the Java module system
+            // (java.base does not "opens java.time"), which throws
+            // InaccessibleObjectException when serialising LocalDateTime/LocalDate.
+            // Explicit adapters avoid reflection entirely.
+            .registerTypeAdapter(LocalDateTime.class, new LocalDateTimeAdapter())
+            .registerTypeAdapter(LocalDate.class, new LocalDateAdapter())
             .create();
+
+    /** Serialises java.time.LocalDateTime as "yyyy-MM-dd HH:mm:ss" or null. */
+    private static final class LocalDateTimeAdapter extends TypeAdapter<LocalDateTime> {
+        @Override public void write(JsonWriter out, LocalDateTime value) throws IOException {
+            if (value == null) out.nullValue(); else out.value(DT_FMT.format(value));
+        }
+        @Override public LocalDateTime read(JsonReader in) throws IOException {
+            if (in.peek() == JsonToken.NULL) { in.nextNull(); return null; }
+            return LocalDateTime.parse(in.nextString(), DT_FMT);
+        }
+    }
+
+    /** Serialises java.time.LocalDate as "yyyy-MM-dd" or null. */
+    private static final class LocalDateAdapter extends TypeAdapter<LocalDate> {
+        @Override public void write(JsonWriter out, LocalDate value) throws IOException {
+            if (value == null) out.nullValue(); else out.value(value.toString());
+        }
+        @Override public LocalDate read(JsonReader in) throws IOException {
+            if (in.peek() == JsonToken.NULL) { in.nextNull(); return null; }
+            return LocalDate.parse(in.nextString());
+        }
+    }
 
     private JsonUtil() {}
 

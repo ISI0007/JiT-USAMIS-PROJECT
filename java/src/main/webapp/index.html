@@ -1517,32 +1517,85 @@ const USERS_DB = {
   stu001:      { pass:'stu123',   role:'student',   name:'Yaseen Al-Rashid',     title:'Student — Year 2' },
 };
 
-/* ─── AUTH ─── */
+/* ─── API BASE ───
+   The SPA is served by the same Tomcat context as the REST API, so a relative
+   base works both at http://localhost:8080/usamis/ and behind a reverse proxy. */
+const API_BASE = (() => {
+  // Strip a trailing index.html / filename, keep the context path (e.g. /usamis/)
+  let p = window.location.pathname;
+  if (p.endsWith('/')) return p + 'api';
+  return p.replace(/\/[^/]*$/, '/') + 'api';
+})();
+
+async function apiFetch(path, options = {}) {
+  const res = await fetch(API_BASE + path, Object.assign({
+    credentials: 'same-origin',
+    headers: { 'Content-Type': 'application/json' }
+  }, options));
+  let body = null;
+  try { body = await res.json(); } catch (e) { /* non-JSON (e.g. 500 html) */ }
+  return { status: res.status, ok: res.ok, body };
+}
+
+/* ─── AUTH ───
+   Authentication is verified SERVER-SIDE against the users table (FR-01/FR-05).
+   The client does not hold password hashes and cannot grant access by editing JS. */
+
+/* Prefill helper for the demo chips — only fills the form, never authenticates. */
 function setDemo(role, user, pass) {
-  document.getElementById('loginRole').value = role;
   document.getElementById('loginUser').value = user;
   document.getElementById('loginPass').value = pass;
 }
 
-function doLogin() {
+async function doLogin() {
   const uid  = document.getElementById('loginUser').value.trim();
   const pass = document.getElementById('loginPass').value;
-  const role = document.getElementById('loginRole').value;
 
-  const u = USERS_DB[uid];
-  if (!u || u.pass !== pass || u.role !== role) {
+  if (!uid || !pass) {
+    showToast('Enter username and password.', 'error');
+    return;
+  }
+
+  let result;
+  try {
+    result = await apiFetch('/auth/login', {
+      method: 'POST',
+      body: JSON.stringify({ username: uid, password: pass })
+    });
+  } catch (e) {
+    showToast('Cannot reach the server. Is the backend running?', 'error');
+    return;
+  }
+
+  if (result.status === 429) {
+    showToast('Too many attempts. Please wait and try again.', 'warning');
+    return;
+  }
+  if (!result.ok || !result.body || !result.body.user) {
     showToast('Invalid credentials. Please try again.', 'error');
     return;
   }
-  currentUser = { id: uid, ...u };
+
+  const u = result.body.user;              // server-issued user (no password hash)
+  const roleMap = {
+    Admin:'admin', Registrar:'registrar', Lecturer:'lecturer',
+    Finance:'finance', Student:'student'
+  };
+  currentUser = {
+    id: u.id, username: u.username,
+    role: roleMap[u.roleName] || (u.roleName || '').toLowerCase(),
+    name: (u.firstName + ' ' + u.lastName).trim(),
+    title: u.roleName
+  };
+
   document.getElementById('loginPage').style.display = 'none';
   document.getElementById('app').style.display = 'flex';
   initApp();
   logAudit('LOGIN', 'Auth', `Successful login for ${uid}`);
 }
 
-function doLogout() {
-  logAudit('LOGOUT', 'Auth', `User ${currentUser.id} logged out`);
+async function doLogout() {
+  try { await apiFetch('/auth/logout', { method: 'POST' }); } catch (e) { /* best effort */ }
   currentUser = null;
   document.getElementById('loginPage').style.display = 'flex';
   document.getElementById('app').style.display = 'none';

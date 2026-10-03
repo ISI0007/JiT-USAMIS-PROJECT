@@ -4,16 +4,17 @@
 -- ═══════════════════════════════════════════════
 
 -- ─── USERS (bcrypt hashes — password = 'admin123', 'reg123', etc.)
--- Use BCrypt.hashpw() in Java — these are pre-computed cost-10 hashes
+-- Real BCrypt cost-12 hashes generated with org.mindrot.jbcrypt, matching
+-- PasswordUtil.COST = 12. Verified with BCrypt.checkpw() before committing.
 INSERT INTO users (username, password_hash, first_name, last_name, email, role_id, status) VALUES
-  ('admin001', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lh5S', 'System',  'Administrator', 'admin@jit.edu.cn',   1, 'active'),
-  ('reg001',   '$2a$10$ZGRpRXpHQWlpMUFBYWlpMeN3P2xoKJJ.Qs2u3rsBpNiRAWEGgDDhO', 'Wang',    'Fang',          'reg@jit.edu.cn',     2, 'active'),
-  ('lec001',   '$2a$10$ZGRpRXpHQWlpMUFBYWlpMeN3P2xoKJJ.Qs2u3rsBpNiRAWEGgDDhO', 'Li',      'Gang',          'lec001@jit.edu.cn',  3, 'active'),
-  ('lec002',   '$2a$10$ZGRpRXpHQWlpMUFBYWlpMeN3P2xoKJJ.Qs2u3rsBpNiRAWEGgDDhO', 'Wang',    'Fang2',         'lec002@jit.edu.cn',  3, 'active'),
-  ('fin001',   '$2a$10$ZGRpRXpHQWlpMUFBYWlpMeN3P2xoKJJ.Qs2u3rsBpNiRAWEGgDDhO', 'Sun',     'Hong',          'fin@jit.edu.cn',     4, 'active'),
-  ('stu001',   '$2a$10$ZGRpRXpHQWlpMUFBYWlpMeN3P2xoKJJ.Qs2u3rsBpNiRAWEGgDDhO', 'Yaseen',  'Al-Rashid',     'yaseen@jit.edu.cn',  5, 'active'),
-  ('stu002',   '$2a$10$ZGRpRXpHQWlpMUFBYWlpMeN3P2xoKJJ.Qs2u3rsBpNiRAWEGgDDhO', 'Wei',     'Zhang',         'wei@jit.edu.cn',     5, 'active'),
-  ('stu003',   '$2a$10$ZGRpRXpHQWlpMUFBYWlpMeN3P2xoKJJ.Qs2u3rsBpNiRAWEGgDDhO', 'Mei',     'Liu',           'mei@jit.edu.cn',     5, 'active');
+  ('admin001', '$2a$12$keCYnGe2.x3mPOdDGVL.oeONybF1JvmAzfCMi4B.f8cYc827n0/OS', 'System',  'Administrator', 'admin@jit.edu.cn',   1, 'active'),
+  ('reg001',   '$2a$12$qaU1E4cw/vhzpUbaM9yKHeIvCI/cNDfmmErpoxAt4Qua2SMSetgsK', 'Wang',    'Fang',          'reg@jit.edu.cn',     2, 'active'),
+  ('lec001',   '$2a$12$AyjDaQfL3WRS5MjhJVM/n.zVOpTbaiT5PqKZ7/BzF3Za9JF07JLjK', 'Li',      'Gang',          'lec001@jit.edu.cn',  3, 'active'),
+  ('lec002',   '$2a$12$L1tNS3JdcejbrToBoANfYeZvxrBWiQqicPpm.vXSimgUHL0q8sVge', 'Wang',    'Fang2',         'lec002@jit.edu.cn',  3, 'active'),
+  ('fin001',   '$2a$12$GwaqH1cvzdTESVdIbJNHq.VIFp4QwpjuDK6Awk8SgrECITkqeO77O', 'Sun',     'Hong',          'fin@jit.edu.cn',     4, 'active'),
+  ('stu001',   '$2a$12$PurxBU43yxQ5ur1u4.pVduk039HN6Aqgt2hRKL6SVS4omvotKmN2O', 'Yaseen',  'Al-Rashid',     'yaseen@jit.edu.cn',  5, 'active'),
+  ('stu002',   '$2a$12$l.7nNt/AP0yUxFZ8bL764.XPetbxMtwVQ8N3mo7fqmVENYbmRk/JW', 'Wei',     'Zhang',         'wei@jit.edu.cn',     5, 'active'),
+  ('stu003',   '$2a$12$RlORsSQg7zIAModZWbESUOw4zmBeO7M.0iEgVzNGGRAa5HmJOAOru', 'Mei',     'Liu',           'mei@jit.edu.cn',     5, 'active');
 
 -- ─── INSTRUCTORS
 INSERT INTO instructors (user_id, department_id, title, specialization) VALUES

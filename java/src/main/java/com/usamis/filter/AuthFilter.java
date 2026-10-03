@@ -51,7 +51,15 @@ public class AuthFilter implements Filter {
             return;
         }
 
+        // NOTE: for prefix mappings like "/api/*" the container sets getServletPath()
+        // to "" and puts the matched remainder in getPathInfo(). Relying on
+        // getServletPath() alone would make the whitelist and routing check read an
+        // empty string. Reconstruct the full request path from both parts.
         String path = request.getServletPath();
+        if (path == null || path.isEmpty()) {
+            String pi = request.getPathInfo();
+            path = (pi != null) ? pi : request.getRequestURI();
+        }
 
         // Whitelist public endpoints
         if (PUBLIC_PATHS.contains(path)) {
