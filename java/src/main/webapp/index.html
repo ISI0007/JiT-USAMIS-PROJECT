@@ -1387,69 +1387,6 @@ tbody td { padding: .7rem 1rem; color: var(--gray-800); vertical-align: middle; 
 /* ─── STATE ─── */
 let currentUser = null;
 
-const DB = {
-  students: [
-    {id:'STU2024001',fname:'Wei',lname:'Zhang',dept:'Computer Engineering',prog:'B.Sc. CS',year:'Year 2',gpa:3.8,email:'wei.zhang@jit.edu.cn',phone:'138-0000-1001',gender:'Male',status:'Active',dob:'2003-05-12'},
-    {id:'STU2024002',fname:'Mei',lname:'Liu',dept:'Software Engineering',prog:'B.Sc. SE',year:'Year 1',gpa:3.5,email:'mei.liu@jit.edu.cn',phone:'138-0000-1002',gender:'Female',status:'Active',dob:'2004-02-20'},
-    {id:'STU2024003',fname:'Jun',lname:'Chen',dept:'Business School',prog:'B.Sc. Finance',year:'Year 3',gpa:2.1,email:'jun.chen@jit.edu.cn',phone:'138-0000-1003',gender:'Male',status:'Active',dob:'2002-08-15'},
-    {id:'STU2024004',fname:'Yaseen',lname:'Al-Rashid',dept:'Computer Engineering',prog:'B.Sc. CS',year:'Year 2',gpa:3.9,email:'yaseen@jit.edu.cn',phone:'138-0000-1004',gender:'Male',status:'Active',dob:'2003-11-01'},
-    {id:'STU2024005',fname:'Xin',lname:'Wang',dept:'Intelligent Science',prog:'B.Sc. AI',year:'Year 2',gpa:2.3,email:'xin.wang@jit.edu.cn',phone:'138-0000-1005',gender:'Female',status:'Active',dob:'2003-07-22'},
-    {id:'STU2024006',fname:'Hao',lname:'Li',dept:'Network Security',prog:'B.Sc. Cyber',year:'Year 4',gpa:3.2,email:'hao.li@jit.edu.cn',phone:'138-0000-1006',gender:'Male',status:'Inactive',dob:'2001-03-30'},
-    {id:'STU2024007',fname:'Fang',lname:'Zhou',dept:'Electronic Engineering',prog:'B.Sc. EE',year:'Year 1',gpa:3.6,email:'fang.zhou@jit.edu.cn',phone:'138-0000-1007',gender:'Female',status:'Active',dob:'2004-09-14'},
-    {id:'STU2024008',fname:'Song',lname:'Zhenhua',dept:'Computer Engineering',prog:'B.Sc. CS',year:'Year 2',gpa:3.4,email:'song.zhenhua@jit.edu.cn',phone:'138-0000-1008',gender:'Male',status:'Active',dob:'2003-12-05'},
-  ],
-  courses: [
-    {code:'CS301',name:'Database Systems',dept:'Computer Engineering',credits:3,instructor:'Prof. Li Gang',enrolled:45,max:50,semester:'Sem 1 2024/25',status:'Active'},
-    {code:'CS201',name:'Data Structures & Algorithms',dept:'Computer Engineering',credits:4,instructor:'Prof. Wang Fang',enrolled:38,max:40,semester:'Sem 1 2024/25',status:'Active'},
-    {code:'SE401',name:'Software Engineering Principles',dept:'Software Engineering',credits:3,instructor:'Prof. Chen Jun',enrolled:30,max:35,semester:'Sem 1 2024/25',status:'Active'},
-    {code:'AI301',name:'Machine Learning Fundamentals',dept:'Intelligent Science',credits:4,instructor:'Prof. Liu Mei',enrolled:25,max:30,semester:'Sem 1 2024/25',status:'Active'},
-    {code:'CS101',name:'Introduction to Programming',dept:'Computer Engineering',credits:3,instructor:'Prof. Zhao Wei',enrolled:50,max:50,semester:'Sem 1 2024/25',status:'Full'},
-    {code:'NET201',name:'Network Security Basics',dept:'Network Security',credits:3,instructor:'Prof. Sun Hong',enrolled:20,max:30,semester:'Sem 2 2024/25',status:'Active'},
-    {code:'BUS201',name:'Management Information Systems',dept:'Business School',credits:3,instructor:'Prof. Yang Min',enrolled:35,max:40,semester:'Sem 1 2024/25',status:'Active'},
-  ],
-  enrollments: [
-    {id:'ENR001',student:'STU2024001',studentName:'Wei Zhang',course:'CS301',courseName:'Database Systems',semester:'Sem 1 2024/25',date:'2024-09-01',status:'Active'},
-    {id:'ENR002',student:'STU2024002',studentName:'Mei Liu',course:'CS201',courseName:'Data Structures',semester:'Sem 1 2024/25',date:'2024-09-01',status:'Active'},
-    {id:'ENR003',student:'STU2024003',studentName:'Jun Chen',course:'BUS201',courseName:'Management IS',semester:'Sem 1 2024/25',date:'2024-09-01',status:'Active'},
-    {id:'ENR004',student:'STU2024004',studentName:'Yaseen Al-Rashid',course:'CS301',courseName:'Database Systems',semester:'Sem 1 2024/25',date:'2024-09-01',status:'Active'},
-    {id:'ENR005',student:'STU2024005',studentName:'Xin Wang',course:'AI301',courseName:'Machine Learning',semester:'Sem 1 2024/25',date:'2024-09-02',status:'Active'},
-    {id:'ENR006',student:'STU2024008',studentName:'Song Zhenhua',course:'CS301',courseName:'Database Systems',semester:'Sem 1 2024/25',date:'2024-09-02',status:'Active'},
-  ],
-  grades: [
-    {studentId:'STU2024001',studentName:'Wei Zhang',course:'CS301',courseName:'Database Systems',score:92,letter:'A',points:4.0,semester:'Sem 1 2024/25'},
-    {studentId:'STU2024002',studentName:'Mei Liu',course:'CS201',courseName:'Data Structures',score:85,letter:'B+',points:3.5,semester:'Sem 1 2024/25'},
-    {studentId:'STU2024003',studentName:'Jun Chen',course:'BUS201',courseName:'Management IS',score:62,letter:'C',points:2.0,semester:'Sem 1 2024/25'},
-    {studentId:'STU2024004',studentName:'Yaseen Al-Rashid',course:'CS301',courseName:'Database Systems',score:97,letter:'A+',points:4.0,semester:'Sem 1 2024/25'},
-    {studentId:'STU2024005',studentName:'Xin Wang',course:'AI301',courseName:'Machine Learning',score:70,letter:'B-',points:2.7,semester:'Sem 1 2024/25'},
-    {studentId:'STU2024008',studentName:'Song Zhenhua',course:'CS301',courseName:'Database Systems',score:88,letter:'B+',points:3.5,semester:'Sem 1 2024/25'},
-  ],
-  fees: [
-    {receipt:'RCP001',student:'STU2024001',studentName:'Wei Zhang',type:'Tuition Fee',semester:'Sem 1 2024/25',total:12000,paid:12000,date:'2024-08-28',method:'Alipay'},
-    {receipt:'RCP002',student:'STU2024002',studentName:'Mei Liu',type:'Tuition Fee',semester:'Sem 1 2024/25',total:12000,paid:8000,date:'2024-08-30',method:'WeChat Pay'},
-    {receipt:'RCP003',student:'STU2024003',studentName:'Jun Chen',type:'Tuition Fee',semester:'Sem 1 2024/25',total:12000,paid:0,date:'-',method:'-'},
-    {receipt:'RCP004',student:'STU2024004',studentName:'Yaseen Al-Rashid',type:'Tuition Fee',semester:'Sem 1 2024/25',total:18000,paid:18000,date:'2024-08-25',method:'Bank Transfer'},
-    {receipt:'RCP005',student:'STU2024005',studentName:'Xin Wang',type:'Accommodation',semester:'Sem 1 2024/25',total:5000,paid:5000,date:'2024-09-01',method:'WeChat Pay'},
-    {receipt:'RCP006',student:'STU2024008',studentName:'Song Zhenhua',type:'Tuition Fee',semester:'Sem 1 2024/25',total:12000,paid:6000,date:'2024-09-05',method:'Alipay'},
-  ],
-  users: [
-    {id:'USR001',username:'admin001',fname:'System',lname:'Administrator',email:'admin@jit.edu.cn',role:'admin',status:'active',lastLogin:'2024-12-15 09:30'},
-    {id:'USR002',username:'reg001',fname:'Wang',lname:'Fang',email:'reg@jit.edu.cn',role:'registrar',status:'active',lastLogin:'2024-12-15 08:15'},
-    {id:'USR003',username:'lec001',fname:'Li',lname:'Gang',email:'lec@jit.edu.cn',role:'lecturer',status:'active',lastLogin:'2024-12-14 14:22'},
-    {id:'USR004',username:'fin001',fname:'Sun',lname:'Hong',email:'fin@jit.edu.cn',role:'finance',status:'active',lastLogin:'2024-12-15 10:05'},
-    {id:'USR005',username:'stu001',fname:'Yaseen',lname:'Al-Rashid',email:'yaseen@jit.edu.cn',role:'student',status:'active',lastLogin:'2024-12-15 11:00'},
-  ],
-  audit: [
-    {id:1,time:'2024-12-15 11:05',user:'admin001',role:'Admin',action:'LOGIN',module:'Auth',desc:'Successful login from web browser',ip:'192.168.1.100'},
-    {id:2,time:'2024-12-15 11:08',user:'admin001',role:'Admin',action:'CREATE',module:'Students',desc:'Added new student STU2024004 Yaseen Al-Rashid',ip:'192.168.1.100'},
-    {id:3,time:'2024-12-15 10:55',user:'lec001',role:'Lecturer',action:'UPDATE',module:'Grades',desc:'Entered grade A+ for STU2024004 in CS301',ip:'192.168.1.102'},
-    {id:4,time:'2024-12-15 10:30',user:'fin001',role:'Finance',action:'CREATE',module:'Fees',desc:'Recorded payment ¥18,000 for STU2024004',ip:'192.168.1.103'},
-    {id:5,time:'2024-12-15 09:50',user:'reg001',role:'Registrar',action:'CREATE',module:'Enrollment',desc:'Enrolled STU2024004 in CS301 Database Systems',ip:'192.168.1.101'},
-    {id:6,time:'2024-12-14 16:00',user:'admin001',role:'Admin',action:'UPDATE',module:'Users',desc:'Updated status for USR006 to inactive',ip:'192.168.1.100'},
-    {id:7,time:'2024-12-14 15:30',user:'stu001',role:'Student',action:'LOGIN',module:'Auth',desc:'Student login — viewed own profile',ip:'192.168.1.120'},
-    {id:8,time:'2024-12-14 14:00',user:'reg001',role:'Registrar',action:'CREATE',module:'Courses',desc:'Added new course NET201 Network Security Basics',ip:'192.168.1.101'},
-  ]
-};
-
 /* ─── NAV CONFIG per role ─── */
 const NAV_CONFIG = {
   admin: [
@@ -1509,14 +1446,6 @@ const NAV_CONFIG = {
   ]
 };
 
-const USERS_DB = {
-  admin001:    { pass:'admin123', role:'admin',     name:'System Administrator', title:'System Administrator' },
-  reg001:      { pass:'reg123',   role:'registrar', name:'Wang Fang',            title:'Registrar Officer' },
-  lec001:      { pass:'lec123',   role:'lecturer',  name:'Prof. Li Gang',        title:'Lecturer' },
-  fin001:      { pass:'fin123',   role:'finance',   name:'Sun Hong',             title:'Finance Officer' },
-  stu001:      { pass:'stu123',   role:'student',   name:'Yaseen Al-Rashid',     title:'Student — Year 2' },
-};
-
 /* ─── API BASE ───
    The SPA is served by the same Tomcat context as the REST API, so a relative
    base works both at http://localhost:8080/usamis/ and behind a reverse proxy. */
@@ -1535,6 +1464,162 @@ async function apiFetch(path, options = {}) {
   let body = null;
   try { body = await res.json(); } catch (e) { /* non-JSON (e.g. 500 html) */ }
   return { status: res.status, ok: res.ok, body };
+}
+
+/* ─── LIVE DATA LAYER ───
+   Views are backed by the REST API (PostgreSQL), not a client-side mock.
+   Each loader fills the matching DB.* slice from the server so the existing
+   render functions below can keep working unchanged. */
+const DB = { students: [], courses: [], enrollments: [], grades: [], fees: [], users: [], audit: [] };
+
+async function loadView(section) {
+  try {
+    switch (section) {
+      case 'dashboard': {
+        const r = await apiFetch('/dashboard');
+        if (r.ok && r.body && r.body.data) DB.dashboard = r.body.data;
+        const a = await apiFetch('/audit?limit=5');
+        if (a.ok && a.body && a.body.data) DB.audit = a.body.data.map(mapAudit);
+        break;
+      }
+      case 'students': {
+        const r = await apiFetch('/students');
+        DB.students = r.ok && r.body && r.body.data ? r.body.data.map(mapStudent) : [];
+        break;
+      }
+      case 'courses': {
+        const r = await apiFetch('/courses');
+        DB.courses = r.ok && r.body && r.body.data ? r.body.data.map(mapCourse) : [];
+        break;
+      }
+      case 'enrollment': {
+        const r = await apiFetch('/enrollments');
+        DB.enrollments = r.ok && r.body && r.body.data ? r.body.data.map(mapEnrollment) : [];
+        break;
+      }
+      case 'grades': {
+        const r = await apiFetch('/grades');
+        DB.grades = r.ok && r.body && r.body.data ? r.body.data.map(mapGrade) : [];
+        break;
+      }
+      case 'fees': {
+        const r = await apiFetch('/fees');
+        DB.fees = r.ok && r.body && r.body.data ? r.body.data.map(mapFee) : [];
+        break;
+      }
+      case 'users': {
+        const r = await apiFetch('/users');
+        DB.users = r.ok && r.body && r.body.data ? r.body.data.map(mapUser) : [];
+        break;
+      }
+      case 'audit': {
+        const r = await apiFetch('/audit?limit=100');
+        DB.audit = r.ok && r.body && r.body.data ? r.body.data.map(mapAudit) : [];
+        break;
+      }
+    }
+    return true;
+  } catch (e) {
+    showToast('Could not load data from the server.', 'error');
+    return false;
+  }
+}
+
+/* ─── SERVER → VIEW SHAPE MAPPERS ─── */
+function mapStudent(s) {
+  return {
+    id: s.studentId,
+    dbId: s.id,
+    fname: s.firstName,
+    lname: s.lastName,
+    dept: s.departmentName || s.departmentId || '—',
+    prog: s.programName || s.programId || '—',
+    year: 'Year ' + (s.yearOfStudy || 1),
+    gpa: (s.gpa != null ? Number(s.gpa) : 0),
+    email: s.email,
+    phone: s.phone || '—',
+    gender: s.gender || '—',
+    status: s.status || 'Active',
+    dob: s.dateOfBirth || ''
+  };
+}
+function mapCourse(c) {
+  return {
+    id: c.id,
+    code: c.code,
+    name: c.name,
+    dept: c.departmentName || c.departmentId || '—',
+    credits: c.credits,
+    instructor: c.instructorName || '—',
+    enrolled: c.enrolledCount != null ? c.enrolledCount : (c.enrolled || 0),
+    max: c.maxEnrollment || 0,
+    semester: c.semester || '',
+    status: c.status || 'Active'
+  };
+}
+function mapEnrollment(e) {
+  return {
+    id: e.enrollmentId != null ? e.enrollmentId : e.id,
+    student: e.studentId,
+    studentName: e.studentName || e.studentId,
+    course: e.courseCode || e.courseId,
+    courseName: e.courseName || '',
+    semester: e.semester || '',
+    date: e.enrollmentDate || e.date || '',
+    status: e.status || 'Active'
+  };
+}
+function mapGrade(g) {
+  return {
+    id: g.id,
+    enrollmentId: g.enrollmentId,
+    studentId: g.studentId,
+    studentName: g.studentName || g.studentId,
+    course: g.courseCode,
+    courseName: g.courseName || '',
+    score: Number(g.score),
+    letter: g.letterGrade || '',
+    points: g.gpaPoints != null ? Number(g.gpaPoints) : 0,
+    semester: g.semester || ''
+  };
+}
+function mapFee(f) {
+  return {
+    id: f.id,
+    receipt: f.receiptNo,
+    student: f.studentId,
+    studentName: f.studentName || f.studentId,
+    type: f.feeType,
+    semester: f.semester || '',
+    total: Number(f.totalAmount),
+    paid: Number(f.paidAmount),
+    date: f.paymentDate || '-',
+    method: f.paymentMethod || '-'
+  };
+}
+function mapUser(u) {
+  return {
+    id: u.id,
+    username: u.username,
+    fname: u.firstName,
+    lname: u.lastName,
+    email: u.email,
+    role: u.roleName,
+    status: u.status,
+    lastLogin: u.lastLogin || '—'
+  };
+}
+function mapAudit(a) {
+  return {
+    id: a.id,
+    time: a.timestamp || a.createdAt || '',
+    user: a.username || '',
+    role: a.roleName || '',
+    action: a.action,
+    module: a.module,
+    desc: a.description || '',
+    ip: a.ipAddress || ''
+  };
 }
 
 /* ─── AUTH ───
@@ -1590,8 +1675,7 @@ async function doLogin() {
 
   document.getElementById('loginPage').style.display = 'none';
   document.getElementById('app').style.display = 'flex';
-  initApp();
-  logAudit('LOGIN', 'Auth', `Successful login for ${uid}`);
+  await initApp();
 }
 
 async function doLogout() {
@@ -1603,12 +1687,12 @@ async function doLogout() {
 }
 
 /* ─── INIT APP ─── */
-function initApp() {
+async function initApp() {
   renderSidebarUser();
   renderSidebarNav();
   setTopbarDate();
-  populateDropdowns();
-  navigateTo('dashboard');
+  if (typeof populateDropdowns === 'function') populateDropdowns();
+  await navigateToLive('dashboard');
 }
 
 function setTopbarDate() {
@@ -1634,7 +1718,7 @@ function renderSidebarNav() {
     if (item.divider) {
       html += `<div class="nav-section-label">${item.label}</div>`;
     } else {
-      html += `<div class="nav-item" id="nav-${item.section}" onclick="navigateTo('${item.section}')">
+      html += `<div class="nav-item" id="nav-${item.section}" onclick="navigateToLive('${item.section}')">
         <span class="nav-icon">${item.icon}</span>${item.label}
       </div>`;
     }
@@ -1671,6 +1755,32 @@ function navigateTo(section) {
   document.getElementById('pageTitle').innerHTML = `<span class="page-icon">${pt.icon}</span><span>${pt.label}</span>`;
 
   // Render content
+  const renders = {
+    dashboard:  renderDashboard,
+    students:   renderStudents,
+    courses:    renderCourses,
+    enrollment: renderEnrollment,
+    grades:     renderGrades,
+    fees:       renderFees,
+    users:      renderUsers,
+    audit:      renderAudit,
+    profile:    renderProfile,
+  };
+  if (renders[section]) renders[section]();
+}
+
+/* Async navigation: fetch live data for the section, then render. */
+async function navigateToLive(section) {
+  const sec = document.getElementById('sec-' + section);
+  if (!sec) return navigateTo(section);
+  const navEl = document.getElementById('nav-' + section);
+  document.querySelectorAll('.page-section').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+  sec.classList.add('active');
+  if (navEl) navEl.classList.add('active');
+  const pt = PAGE_TITLES[section] || { icon:'', label: section };
+  document.getElementById('pageTitle').innerHTML = `<span class="page-icon">${pt.icon}</span><span>${pt.label}</span>`;
+  await loadView(section);
   const renders = {
     dashboard:  renderDashboard,
     students:   renderStudents,
@@ -1806,44 +1916,45 @@ function renderStudents() {
   `).join('');
 }
 
-function deleteStudent(i) {
+async function deleteStudent(i) {
   if (!confirm('Delete this student record?')) return;
-  logAudit('DELETE', 'Students', `Deleted student ${DB.students[i].id}`);
-  DB.students.splice(i, 1);
-  renderStudents();
-  showToast('Student record deleted', 'success');
+  const s = DB.students[i];
+  const r = await apiFetch('/students/' + s.dbId, { method: 'DELETE' });
+  if (r.ok) {
+    showToast('Student record deactivated', 'success');
+    await loadView('students'); renderStudents();
+  } else {
+    showToast((r.body && r.body.message) || 'Delete failed', 'error');
+  }
 }
 
-function addStudent() {
+async function addStudent() {
   const fname = document.getElementById('s_fname').value.trim();
   const lname = document.getElementById('s_lname').value.trim();
   const id    = document.getElementById('s_id').value.trim();
   if (!fname || !lname || !id) { showToast('Please fill required fields', 'error'); return; }
 
-  // Check duplicate
-  if (DB.students.find(s => s.id === id)) {
-    showToast('Student ID already exists!', 'error'); return;
-  }
-
-  DB.students.push({
-    id, fname, lname,
-    dept:   document.getElementById('s_dept').value,
-    prog:   document.getElementById('s_prog').value || 'Undeclared',
-    year:   document.getElementById('s_year').value,
-    gpa:    0.0,
-    email:  document.getElementById('s_email').value,
-    phone:  document.getElementById('s_phone').value,
+  const payload = {
+    studentId: id, firstName: fname, lastName: lname,
+    email: document.getElementById('s_email').value.trim(),
+    phone: document.getElementById('s_phone').value,
     gender: document.getElementById('s_gender').value,
-    status: 'Active',
-    dob:    document.getElementById('s_dob').value,
-  });
+    departmentId: 1, programId: 1,
+    yearOfStudy: parseInt((document.getElementById('s_year').value || '1').replace(/\D/g,''), 10) || 1,
+    dateOfBirth: document.getElementById('s_dob').value || null
+  };
 
-  logAudit('CREATE', 'Students', `Added student ${id} ${fname} ${lname}`);
-  closeModal('modalStudent');
-  renderStudents();
-  showToast(`Student ${fname} ${lname} added successfully!`, 'success');
-  // Reset
-  ['s_fname','s_lname','s_id','s_prog','s_email','s_phone'].forEach(id => document.getElementById(id).value = '');
+  const r = await apiFetch('/students', { method: 'POST', body: JSON.stringify(payload) });
+  if (r.ok) {
+    closeModal('modalStudent');
+    showToast(`Student ${fname} ${lname} added successfully!`, 'success');
+    ['s_fname','s_lname','s_id','s_prog','s_email','s_phone'].forEach(x => document.getElementById(x).value = '');
+    await loadView('students'); renderStudents();
+  } else if (r.status === 409) {
+    showToast((r.body && r.body.message) || 'Student ID already exists!', 'error');
+  } else {
+    showToast((r.body && r.body.message) || 'Could not add student', 'error');
+  }
 }
 
 /* ─── COURSES ─── */
@@ -1872,34 +1983,35 @@ function renderCourses() {
   `).join('');
 }
 
-function deleteCourse(i) {
+async function deleteCourse(i) {
   if (!confirm('Delete this course?')) return;
-  logAudit('DELETE', 'Courses', `Deleted course ${DB.courses[i].code}`);
-  DB.courses.splice(i, 1);
-  renderCourses();
-  showToast('Course deleted', 'success');
+  const c = DB.courses[i];
+  const r = await apiFetch('/courses/' + c.id, { method: 'DELETE' });
+  if (r.ok) { showToast('Course deleted', 'success'); await loadView('courses'); renderCourses(); }
+  else { showToast((r.body && r.body.message) || 'Delete failed', 'error'); }
 }
 
-function addCourse() {
+async function addCourse() {
   const code = document.getElementById('c_code').value.trim();
   const name = document.getElementById('c_name').value.trim();
   if (!code || !name) { showToast('Please fill required fields', 'error'); return; }
-  if (DB.courses.find(c => c.code === code)) { showToast('Course code already exists!', 'error'); return; }
-
-  DB.courses.push({
-    code, name,
-    dept: document.getElementById('c_dept').value,
+  const payload = {
+    code: code.toUpperCase(), name,
+    departmentId: 1,
     credits: parseInt(document.getElementById('c_credits').value) || 3,
-    instructor: document.getElementById('c_instructor').value,
-    enrolled: 0,
-    max: parseInt(document.getElementById('c_max').value) || 50,
-    semester: document.getElementById('c_sem').value,
-    status: 'Active'
-  });
-  logAudit('CREATE', 'Courses', `Added course ${code} ${name}`);
-  closeModal('modalCourse');
-  renderCourses();
-  showToast(`Course ${code} added!`, 'success');
+    maxEnrollment: parseInt(document.getElementById('c_max').value) || 50,
+    semester: document.getElementById('c_sem').value || 'Semester 1'
+  };
+  const r = await apiFetch('/courses', { method: 'POST', body: JSON.stringify(payload) });
+  if (r.ok) {
+    closeModal('modalCourse');
+    showToast(`Course ${code} added!`, 'success');
+    await loadView('courses'); renderCourses();
+  } else if (r.status === 409) {
+    showToast((r.body && r.body.message) || 'Course code already exists!', 'error');
+  } else {
+    showToast((r.body && r.body.message) || 'Could not add course', 'error');
+  }
 }
 
 /* ─── ENROLLMENT ─── */
@@ -1921,42 +2033,35 @@ function renderEnrollment() {
   `).join('');
 }
 
-function deleteEnroll(i) {
+async function deleteEnroll(i) {
   if (!confirm('Drop this enrollment?')) return;
-  logAudit('DELETE', 'Enrollment', `Dropped enrollment ${DB.enrollments[i].id}`);
-  DB.enrollments.splice(i, 1);
-  renderEnrollment();
-  showToast('Enrollment dropped', 'success');
+  const e = DB.enrollments[i];
+  const r = await apiFetch('/enrollments/' + e.id, { method: 'DELETE' });
+  if (r.ok) { showToast('Enrollment dropped', 'success'); await loadView('enrollment'); renderEnrollment(); }
+  else { showToast((r.body && r.body.message) || 'Drop failed', 'error'); }
 }
 
-function addEnrollment() {
+async function addEnrollment() {
   const studentSel = document.getElementById('e_student');
   const courseSel  = document.getElementById('e_course');
   if (!studentSel.value || !courseSel.value) {
     showToast('Please select student and course', 'error'); return;
   }
-  // Duplicate check
-  const dup = DB.enrollments.find(e => e.student === studentSel.value && e.course === courseSel.value);
-  if (dup) { showToast('Student already enrolled in this course!', 'error'); return; }
-
-  const sName = studentSel.options[studentSel.selectedIndex].text;
-  const cName = courseSel.options[courseSel.selectedIndex].text;
-  const newId = 'ENR' + String(DB.enrollments.length + 1).padStart(3,'0');
-
-  DB.enrollments.push({
-    id: newId,
-    student: studentSel.value,
-    studentName: sName,
-    course: courseSel.value,
-    courseName: cName,
-    semester: document.getElementById('e_sem').value,
-    date: document.getElementById('e_date').value || new Date().toISOString().slice(0,10),
-    status: 'Active'
-  });
-  logAudit('CREATE', 'Enrollment', `Enrolled ${sName} in ${cName}`);
-  closeModal('modalEnroll');
-  renderEnrollment();
-  showToast(`Enrollment confirmed!`, 'success');
+  const payload = {
+    studentId: parseInt(studentSel.value, 10),
+    courseId: parseInt(courseSel.value, 10),
+    semester: document.getElementById('e_sem').value || 'Semester 1'
+  };
+  const r = await apiFetch('/enrollments', { method: 'POST', body: JSON.stringify(payload) });
+  if (r.ok) {
+    closeModal('modalEnroll');
+    showToast('Enrollment confirmed!', 'success');
+    await loadView('enrollment'); renderEnrollment();
+  } else if (r.status === 409) {
+    showToast((r.body && r.body.message) || 'Student already enrolled!', 'error');
+  } else {
+    showToast((r.body && r.body.message) || 'Could not enroll', 'error');
+  }
 }
 
 /* ─── GRADES ─── */
@@ -2031,32 +2136,30 @@ function renderGrades() {
   }).join('');
 }
 
-function addGrade() {
+async function addGrade() {
   const studentSel = document.getElementById('g_student');
   const courseSel  = document.getElementById('g_course');
   const score      = parseInt(document.getElementById('g_score').value);
   if (!studentSel.value || !courseSel.value || isNaN(score)) {
     showToast('Please fill all required fields', 'error'); return;
   }
-  const letter = document.getElementById('g_letter').value;
-  const points = parseFloat(document.getElementById('g_points').value);
-  const sName  = studentSel.options[studentSel.selectedIndex].text;
-  const cName  = courseSel.options[courseSel.selectedIndex].text;
-
-  // Duplicate check
-  const dup = DB.grades.find(g => g.studentId === studentSel.value && g.course === courseSel.value);
-  if (dup) { showToast('Grade already exists for this student/course!', 'error'); return; }
-
-  DB.grades.push({
-    studentId: studentSel.value, studentName: sName,
-    course: courseSel.value, courseName: cName,
-    score, letter, points,
-    semester: document.getElementById('g_sem').value
+  // The grades API is keyed by enrollmentId; find the matching enrollment.
+  const enr = DB.enrollments.find(e =>
+    String(e.student) === String(studentSel.value) && String(e.course) === String(courseSel.value));
+  if (!enr) { showToast('No enrollment found for this student/course. Enroll first.', 'error'); return; }
+  const r = await apiFetch('/grades', {
+    method: 'POST',
+    body: JSON.stringify({ enrollmentId: enr.id, score })
   });
-  logAudit('CREATE', 'Grades', `Entered grade ${letter} for ${sName} in ${cName}`);
-  closeModal('modalGrade');
-  renderGrades();
-  showToast(`Grade ${letter} saved for ${sName}!`, 'success');
+  if (r.ok) {
+    closeModal('modalGrade');
+    showToast(`Grade saved (${(r.body && r.body.letterGrade) || ''})`, 'success');
+    await loadView('grades'); renderGrades();
+  } else if (r.status === 409) {
+    showToast((r.body && r.body.message) || 'Grade already exists!', 'error');
+  } else {
+    showToast((r.body && r.body.message) || 'Could not save grade', 'error');
+  }
 }
 
 /* ─── FEES ─── */
@@ -2095,30 +2198,31 @@ function renderFees() {
   }).join('');
 }
 
-function addFee() {
+async function addFee() {
   const studentSel = document.getElementById('f_student');
   const total = parseFloat(document.getElementById('f_total').value);
   const paid  = parseFloat(document.getElementById('f_paid').value);
-  if (!studentSel.value || isNaN(total) || isNaN(paid)) {
+  if (!studentSel.value || isNaN(total)) {
     showToast('Please fill required fields', 'error'); return;
   }
-  if (paid > total) { showToast('Paid amount cannot exceed total', 'error'); return; }
-
-  const sName = studentSel.options[studentSel.selectedIndex].text;
-  const receipt = 'RCP' + String(DB.fees.length + 1).padStart(3,'0');
-  DB.fees.push({
-    receipt,
-    student: studentSel.value, studentName: sName,
-    type: document.getElementById('f_type').value,
-    semester: document.getElementById('f_sem').value,
-    total, paid,
-    date: new Date().toISOString().slice(0,10),
-    method: document.getElementById('f_method').value
-  });
-  logAudit('CREATE', 'Fees', `Recorded payment ¥${paid} for ${sName}`);
-  closeModal('modalFee');
-  renderFees();
-  showToast(`Payment recorded! Receipt ${receipt}`, 'success');
+  const paidAmt = isNaN(paid) ? 0 : paid;
+  if (paidAmt > total) { showToast('Paid amount cannot exceed total', 'error'); return; }
+  const payload = {
+    studentId: parseInt(studentSel.value, 10),
+    feeType: document.getElementById('f_type').value || 'Tuition',
+    semester: document.getElementById('f_sem').value || 'Semester 1',
+    totalAmount: total,
+    paidAmount: paidAmt,
+    paymentMethod: document.getElementById('f_method').value || null
+  };
+  const r = await apiFetch('/fees', { method: 'POST', body: JSON.stringify(payload) });
+  if (r.ok) {
+    closeModal('modalFee');
+    showToast(`Fee record created! ${(r.body && r.body.receiptNo) || ''}`, 'success');
+    await loadView('fees'); renderFees();
+  } else {
+    showToast((r.body && r.body.message) || 'Could not create fee record', 'error');
+  }
 }
 
 /* ─── USERS ─── */
@@ -2142,34 +2246,38 @@ function renderUsers() {
   `).join('');
 }
 
-function deleteUser(i) {
-  if (DB.users[i].id === 'USR001') { showToast('Cannot delete system admin!', 'error'); return; }
+async function deleteUser(i) {
+  const u = DB.users[i];
+  if (String(u.username) === 'admin001') { showToast('Cannot delete the system admin!', 'error'); return; }
   if (!confirm('Delete this user?')) return;
-  logAudit('DELETE', 'Users', `Deleted user ${DB.users[i].username}`);
-  DB.users.splice(i, 1);
-  renderUsers();
-  showToast('User deleted', 'success');
+  const r = await apiFetch('/users/' + u.id, { method: 'DELETE' });
+  if (r.ok) { showToast('User deleted', 'success'); await loadView('users'); renderUsers(); }
+  else { showToast((r.body && r.body.message) || 'Delete failed', 'error'); }
 }
 
-function addUser() {
+async function addUser() {
   const fname = document.getElementById('u_fname').value.trim();
+  const lname = document.getElementById('u_lname').value.trim();
   const uname = document.getElementById('u_uname').value.trim();
   const email = document.getElementById('u_email').value.trim();
   if (!fname || !uname || !email) { showToast('Please fill required fields', 'error'); return; }
-  if (DB.users.find(u => u.username === uname)) { showToast('Username already exists!', 'error'); return; }
-
-  const lname = document.getElementById('u_lname').value.trim();
-  const uid = 'USR' + String(DB.users.length + 1).padStart(3,'0');
-  DB.users.push({
-    id: uid, username: uname, fname, lname, email,
-    role: document.getElementById('u_role').value,
+  // Server assigns/validates the password; a starter password is generated.
+  const payload = {
+    username: uname, firstName: fname, lastName: lname, email,
+    roleName: document.getElementById('u_role').value,
     status: document.getElementById('u_status').value,
-    lastLogin: 'Never'
-  });
-  logAudit('CREATE', 'Users', `Created user ${uname} with role ${document.getElementById('u_role').value}`);
-  closeModal('modalUser');
-  renderUsers();
-  showToast(`User ${uname} created!`, 'success');
+    password: 'changeme123'
+  };
+  const r = await apiFetch('/users', { method: 'POST', body: JSON.stringify(payload) });
+  if (r.ok) {
+    closeModal('modalUser');
+    showToast(`User ${uname} created!`, 'success');
+    await loadView('users'); renderUsers();
+  } else if (r.status === 409) {
+    showToast((r.body && r.body.message) || 'Username already exists!', 'error');
+  } else {
+    showToast((r.body && r.body.message) || 'Could not create user', 'error');
+  }
 }
 
 /* ─── AUDIT ─── */

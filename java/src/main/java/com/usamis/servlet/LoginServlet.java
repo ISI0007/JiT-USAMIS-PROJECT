@@ -141,18 +141,33 @@ public class LoginServlet extends HttpServlet {
     }
 
     // ─── RATE LIMITING (simple in-memory) ───────────────────
-    // In production replace with Redis-based sliding window
-    private static final java.util.concurrent.ConcurrentHashMap<String, int[]> ATTEMPTS
+    // In production replace with Redis-based sliding window.
+    // Window: failed attempts older than WINDOW_MS are forgotten, so a burst
+    // of typos cannot lock an IP out forever (there is no successful login to
+    // clear it when the password is genuinely wrong).
+    private static final java.util.concurrent.ConcurrentHashMap<String, long[]> ATTEMPTS
         = new java.util.concurrent.ConcurrentHashMap<>();
     private static final int MAX_ATTEMPTS = 5;
+    private static final long WINDOW_MS = 15 * 60 * 1000L; // 15 minutes
 
     private boolean isRateLimited(String ip) {
-        int[] a = ATTEMPTS.get(ip);
-        return a != null && a[0] >= MAX_ATTEMPTS;
+        long[] a = ATTEMPTS.get(ip);
+        if (a == null) return false;
+        if (System.currentTimeMillis() - a[1] > WINDOW_MS) {
+            ATTEMPTS.remove(ip);
+            return false;
+        }
+        return a[0] >= MAX_ATTEMPTS;
     }
 
     private void recordFailedAttempt(String ip) {
-        ATTEMPTS.merge(ip, new int[]{1}, (old, v) -> { old[0]++; return old; });
+        long now = System.currentTimeMillis();
+        ATTEMPTS.merge(ip, new long[]{1, now}, (old, v) -> {
+            if (now - old[1] > WINDOW_MS) { old[0] = 1; }
+            else { old[0]++; }
+            old[1] = now;
+            return old;
+        });
     }
 
     private void clearFailedAttempts(String ip) {
