@@ -21,11 +21,10 @@ import java.io.IOException;
    PUT  /api/courses/{id}   → update
    DELETE /api/courses/{id} → cancel
 ══════════════════════════════════════════════════════════════ */
-class CourseServletImpl extends HttpServlet {
+@WebServlet(urlPatterns = {"/api/courses", "/api/courses/*"})
+class CourseServlet extends HttpServlet {
 
-    public CourseServletImpl() {}
-
-    private static final Logger log = LoggerFactory.getLogger(CourseServletImpl.class);
+    private static final Logger log = LoggerFactory.getLogger(CourseServlet.class);
     private final AcademicDAO dao = new AcademicDAO();
 
     @Override protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
@@ -168,11 +167,10 @@ class CourseServletImpl extends HttpServlet {
    POST /api/enrollments              → enroll (admin, registrar)
    DELETE /api/enrollments/{id}       → drop
 ══════════════════════════════════════════════════════════════ */
-class EnrollmentServletImpl extends HttpServlet {
+@WebServlet(urlPatterns = {"/api/enrollments", "/api/enrollments/*"})
+class EnrollmentServlet extends HttpServlet {
 
-    public EnrollmentServletImpl() {}
-
-    private static final Logger log = LoggerFactory.getLogger(EnrollmentServletImpl.class);
+    private static final Logger log = LoggerFactory.getLogger(EnrollmentServlet.class);
     private final AcademicDAO dao = new AcademicDAO();
 
     @Override protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
@@ -268,11 +266,10 @@ class EnrollmentServletImpl extends HttpServlet {
    POST /api/grades               → enter grade (admin, lecturer)
    PUT  /api/grades/{id}          → update grade
 ══════════════════════════════════════════════════════════════ */
-class GradeServletImpl extends HttpServlet {
+@WebServlet(urlPatterns = {"/api/grades", "/api/grades/*"})
+class GradeServlet extends HttpServlet {
 
-    public GradeServletImpl() {}
-
-    private static final Logger log = LoggerFactory.getLogger(GradeServletImpl.class);
+    private static final Logger log = LoggerFactory.getLogger(GradeServlet.class);
     private final AcademicDAO dao = new AcademicDAO();
 
     @Override protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
@@ -380,11 +377,10 @@ class GradeServletImpl extends HttpServlet {
    POST /api/fees                  → create record
    POST /api/fees/{id}/pay         → record a payment
 ══════════════════════════════════════════════════════════════ */
-class FeeServletImpl extends HttpServlet {
+@WebServlet(urlPatterns = {"/api/fees", "/api/fees/*"})
+class FeeServlet extends HttpServlet {
 
-    public FeeServletImpl() {}
-
-    private static final Logger log = LoggerFactory.getLogger(FeeServletImpl.class);
+    private static final Logger log = LoggerFactory.getLogger(FeeServlet.class);
     private final AcademicDAO dao = new AcademicDAO();
 
     @Override protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
@@ -505,9 +501,8 @@ class FeeServletImpl extends HttpServlet {
    DASHBOARD SERVLET
    GET /api/dashboard → stats (admin, registrar, finance)
 ══════════════════════════════════════════════════════════════ */
-class DashboardServletImpl extends HttpServlet {
-
-    public DashboardServletImpl() {}
+@WebServlet(urlPatterns = {"/api/dashboard"})
+class DashboardServlet extends HttpServlet {
 
     private final AcademicDAO dao = new AcademicDAO();
 
@@ -525,9 +520,8 @@ class DashboardServletImpl extends HttpServlet {
    GET /api/audit                → paginated audit log (admin only)
    GET /api/audit?limit=&offset= → paginated
 ══════════════════════════════════════════════════════════════ */
-class AuditServletImpl extends HttpServlet {
-
-    public AuditServletImpl() {}
+@WebServlet(urlPatterns = {"/api/audit", "/api/audit/*"})
+class AuditServlet extends HttpServlet {
 
     private final AcademicDAO dao = new AcademicDAO();
 
@@ -550,3 +544,16 @@ class AuditServletImpl extends HttpServlet {
    HEALTH SERVLET — for load balancer / monitoring
    GET /api/health → {"status":"UP","version":"1.0.0"}
 ══════════════════════════════════════════════════════════════ */
+@WebServlet(urlPatterns = {"/api/health"})
+class HealthServlet extends HttpServlet {
+
+    @Override protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        JsonObject health = new JsonObject();
+        health.addProperty("status",  "UP");
+        health.addProperty("system",  "USAMIS");
+        health.addProperty("version", "1.0.0");
+        health.addProperty("institution", "Jinling Institute of Technology");
+        health.addProperty("timestamp", java.time.LocalDateTime.now().toString());
+        JsonUtil.ok(resp, health);
+    }
+}
