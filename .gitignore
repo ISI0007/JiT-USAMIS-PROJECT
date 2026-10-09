@@ -20,11 +20,8 @@ logs/
 .DS_Store
 Thumbs.db
 
-# AI module — local secrets and artifacts (never commit)
-java/src/main/resources/ai.properties
-ai-service/.env
-ai-service/.venv/
-ai-service/models/*.pt
-ai-service/__pycache__/
-ai-service/**/__pycache__/
+# Python artifacts (generic)
+__pycache__/
+*.pyc
 .pytest_cache/
+.venv/
