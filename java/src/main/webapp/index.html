@@ -973,55 +973,69 @@ tbody td { padding: .7rem 1rem; color: var(--gray-800); vertical-align: middle; 
 
       <!-- ── REPORTS ── -->
       <div class="page-section" id="sec-reports">
+        <div class="action-bar">
+          <span style="font-size:.85rem;color:var(--gray-600)">Reports are generated live from the database. Click any report to view it.</span>
+        </div>
         <div class="three-col">
-          <div class="card" style="cursor:pointer" onclick="showToast('Generating report...','info')">
+          <div class="card" style="cursor:pointer" onclick="runReport('students-per-dept')">
             <div class="card-body" style="text-align:center;padding:2rem 1rem">
               <div style="font-size:2rem;margin-bottom:.75rem">👥</div>
               <div style="font-weight:700;color:var(--navy);margin-bottom:.4rem">Students per Department</div>
               <div style="font-size:.78rem;color:var(--gray-600)">Distribution across all departments</div>
-              <button class="btn btn-primary btn-sm" style="margin-top:1rem" onclick="showToast('Report generated!','success')">Generate PDF</button>
+              <button class="btn btn-primary btn-sm" style="margin-top:1rem">Generate</button>
             </div>
           </div>
-          <div class="card" style="cursor:pointer">
+          <div class="card" style="cursor:pointer" onclick="runReport('fee-defaulters')">
             <div class="card-body" style="text-align:center;padding:2rem 1rem">
               <div style="font-size:2rem;margin-bottom:.75rem">⚠️</div>
               <div style="font-weight:700;color:var(--navy);margin-bottom:.4rem">Fee Defaulters List</div>
               <div style="font-size:.78rem;color:var(--gray-600)">Students with outstanding balances</div>
-              <button class="btn btn-primary btn-sm" style="margin-top:1rem" onclick="showToast('Report generated!','success')">Generate PDF</button>
+              <button class="btn btn-primary btn-sm" style="margin-top:1rem">Generate</button>
             </div>
           </div>
-          <div class="card" style="cursor:pointer">
+          <div class="card" style="cursor:pointer" onclick="runReport('course-pass-rate')">
             <div class="card-body" style="text-align:center;padding:2rem 1rem">
               <div style="font-size:2rem;margin-bottom:.75rem">📈</div>
               <div style="font-weight:700;color:var(--navy);margin-bottom:.4rem">Course Pass Rate</div>
               <div style="font-size:.78rem;color:var(--gray-600)">Analysis of student performance</div>
-              <button class="btn btn-primary btn-sm" style="margin-top:1rem" onclick="showToast('Report generated!','success')">Generate PDF</button>
+              <button class="btn btn-primary btn-sm" style="margin-top:1rem">Generate</button>
             </div>
           </div>
-          <div class="card" style="cursor:pointer">
+          <div class="card" style="cursor:pointer" onclick="runReport('low-gpa')">
             <div class="card-body" style="text-align:center;padding:2rem 1rem">
               <div style="font-size:2rem;margin-bottom:.75rem">📉</div>
-              <div style="font-weight:700;color:var(--navy);margin-bottom:.4rem">Low Attendance Report</div>
-              <div style="font-size:.78rem;color:var(--gray-600)">Students below 75% attendance</div>
-              <button class="btn btn-primary btn-sm" style="margin-top:1rem" onclick="showToast('Report generated!','success')">Generate PDF</button>
+              <div style="font-weight:700;color:var(--navy);margin-bottom:.4rem">At-Risk Students</div>
+              <div style="font-size:.78rem;color:var(--gray-600)">Students below 2.5 GPA</div>
+              <button class="btn btn-primary btn-sm" style="margin-top:1rem">Generate</button>
             </div>
           </div>
-          <div class="card" style="cursor:pointer">
+          <div class="card" style="cursor:pointer" onclick="runReport('gpa-transcript')">
             <div class="card-body" style="text-align:center;padding:2rem 1rem">
               <div style="font-size:2rem;margin-bottom:.75rem">🏆</div>
-              <div style="font-weight:700;color:var(--navy);margin-bottom:.4rem">GPA Transcript</div>
-              <div style="font-size:.78rem;color:var(--gray-600)">Individual student transcripts</div>
-              <button class="btn btn-primary btn-sm" style="margin-top:1rem" onclick="showToast('Report generated!','success')">Generate PDF</button>
+              <div style="font-weight:700;color:var(--navy);margin-bottom:.4rem">GPA Transcripts</div>
+              <div style="font-size:.78rem;color:var(--gray-600)">Per-student GPA summary</div>
+              <button class="btn btn-primary btn-sm" style="margin-top:1rem">Generate</button>
             </div>
           </div>
-          <div class="card" style="cursor:pointer">
+          <div class="card" style="cursor:pointer" onclick="runReport('enrollment-summary')">
             <div class="card-body" style="text-align:center;padding:2rem 1rem">
               <div style="font-size:2rem;margin-bottom:.75rem">📊</div>
               <div style="font-weight:700;color:var(--navy);margin-bottom:.4rem">Enrollment Summary</div>
               <div style="font-size:.78rem;color:var(--gray-600)">By course, department, semester</div>
-              <button class="btn btn-primary btn-sm" style="margin-top:1rem" onclick="showToast('Report generated!','success')">Generate PDF</button>
+              <button class="btn btn-primary btn-sm" style="margin-top:1rem">Generate</button>
             </div>
           </div>
+        </div>
+
+        <div class="card" id="reportOutputCard" style="display:none;margin-top:1.25rem">
+          <div class="card-header">
+            <span class="card-title" id="reportTitle">Report</span>
+            <span>
+              <button class="btn btn-outline btn-sm" onclick="printReport()">🖨 Print / Save PDF</button>
+              <button class="btn btn-outline btn-sm" onclick="closeReport()">✕ Close</button>
+            </span>
+          </div>
+          <div class="card-body" id="reportOutput" style="overflow-x:auto"></div>
         </div>
       </div>
 
@@ -2050,6 +2064,7 @@ function navigateTo(section) {
     users:      renderUsers,
     audit:      renderAudit,
     ai:         renderAi,
+    reports:    renderReports,
     profile:    renderProfile,
   };
   if (renders[section]) renders[section]();
@@ -2077,6 +2092,7 @@ async function navigateToLive(section) {
     users:      renderUsers,
     audit:      renderAudit,
     ai:         renderAi,
+    reports:    renderReports,
     profile:    renderProfile,
   };
   if (renders[section]) renders[section]();
@@ -2655,6 +2671,153 @@ function logAudit(action, module, desc) {
     action, module, desc,
     ip: '127.0.0.1'
   });
+}
+
+/* ─── REPORTS (real, data-driven) ─── */
+function renderReports() {
+  // Hide report cards a role has no permission for, so nobody clicks into a 403.
+  // fee-defaulters needs fee permission; everything else needs roster/grades.
+  const role = currentUser.role;
+  const canFees = ['admin', 'finance'].includes(role);
+  const canRoster = ['admin', 'registrar'].includes(role);
+  const canGrades = ['admin', 'registrar', 'lecturer'].includes(role);
+  const gating = {
+    'fee-defaulters':    canFees,
+    'students-per-dept': canRoster,
+    'low-gpa':           canRoster,
+    'gpa-transcript':    canRoster,
+    'enrollment-summary':canRoster || canGrades,
+    'course-pass-rate':  canGrades,
+  };
+  document.querySelectorAll('#sec-reports .card[onclick]').forEach(card => {
+    const m = (card.getAttribute('onclick') || '').match(/runReport\('([^']+)'\)/);
+    const kind = m ? m[1] : null;
+    if (kind && kind in gating && !gating[kind]) card.style.display = 'none';
+    else card.style.display = '';
+  });
+  closeReport();
+}
+
+function closeReport() {
+  const c = document.getElementById('reportOutputCard');
+  if (c) c.style.display = 'none';
+}
+
+function printReport() {
+  const body = document.getElementById('reportOutput').innerHTML;
+  const title = document.getElementById('reportTitle').textContent;
+  const w = window.open('', '_blank');
+  if (!w) { showToast('Allow pop-ups to print the report', 'error'); return; }
+  w.document.write('<html><head><title>' + title + '</title><style>' +
+    'body{font-family:Segoe UI,Arial,sans-serif;padding:24px;color:#1a2a4a}' +
+    'h2{margin:0 0 4px} .muted{color:#64748b;font-size:12px;margin-bottom:16px}' +
+    'table{border-collapse:collapse;width:100%;font-size:13px}' +
+    'th,td{border:1px solid #cbd5e1;padding:6px 8px;text-align:left}' +
+    'th{background:#1a2a4a;color:#fff} tr:nth-child(even){background:#f1f5f9}' +
+    '.kpi{display:inline-block;margin:0 18px 12px 0} .kpi b{font-size:20px;display:block;color:#2e7d8a}' +
+    '</style></head><body>' + body + '</body></html>');
+  w.document.close();
+  w.focus();
+  setTimeout(() => w.print(), 300);
+}
+
+function reportShell(title, subtitle, inner) {
+  document.getElementById('reportTitle').textContent = title;
+  document.getElementById('reportOutput').innerHTML =
+    '<h2>' + title + '</h2><div class="muted">' + subtitle +
+    ' · Generated ' + new Date().toLocaleString() + '</div>' + inner;
+  document.getElementById('reportOutputCard').style.display = '';
+  document.getElementById('reportOutputCard').scrollIntoView({ behavior:'smooth', block:'nearest' });
+}
+
+function reportTable(headers, rows) {
+  return '<table id="reportTable"><thead><tr>' +
+    headers.map(h => '<th>' + h + '</th>').join('') + '</tr></thead><tbody>' +
+    rows.map(r => '<tr>' + r.map(c => '<td>' + (c == null ? '' : c) + '</td>').join('') + '</tr>').join('') +
+    '</tbody></table>';
+}
+
+async function runReport(kind) {
+  showToast('Generating report…', 'info');
+  try {
+    if (kind === 'students-per-dept') {
+      const r = await apiFetch('/students');
+      const list = (r.ok && r.body && r.body.data) ? r.body.data : [];
+      const byDept = {};
+      list.forEach(s => { const d = s.departmentName || '—'; byDept[d] = (byDept[d]||0)+1; });
+      const rows = Object.entries(byDept).sort((a,b) => b[1]-a[1])
+        .map(([d,n]) => [d, n, ((n/list.length)*100).toFixed(1)+'%']);
+      reportShell('Students per Department',
+        'Total students: ' + list.length,
+        reportTable(['Department','Students','Share'], rows));
+    }
+    else if (kind === 'fee-defaulters') {
+      const r = await apiFetch('/fees/defaulters');
+      const list = (r.ok && r.body && r.body.data) ? r.body.data : [];
+      const rows = list.map(f => [f.studentNo || f.studentId, f.studentName || '',
+        f.feeType || '', fmtMoney(f.totalAmount), fmtMoney(f.paidAmount),
+        fmtMoney((Number(f.totalAmount)||0) - (Number(f.paidAmount)||0))]);
+      reportShell('Fee Defaulters',
+        list.length + ' students with an outstanding balance',
+        list.length ? reportTable(['Student No','Name','Fee Type','Billed','Paid','Balance'], rows)
+                    : '<p>No outstanding balances. 🎉</p>');
+    }
+    else if (kind === 'course-pass-rate') {
+      const r = await apiFetch('/grades');
+      const list = (r.ok && r.body && r.body.data) ? r.body.data : [];
+      const byCourse = {};
+      list.forEach(g => {
+        const c = g.courseCode || '—';
+        byCourse[c] = byCourse[c] || { n:0, pass:0, sum:0 };
+        byCourse[c].n++; byCourse[c].sum += Number(g.score)||0;
+        if ((Number(g.score)||0) >= 60) byCourse[c].pass++;
+      });
+      const rows = Object.entries(byCourse).sort().map(([c,v]) => [
+        c, v.n, v.pass, (v.n-v.pass), ((v.pass/v.n)*100).toFixed(1)+'%', (v.sum/v.n).toFixed(1)]);
+      reportShell('Course Pass Rate',
+        'Across ' + Object.keys(byCourse).length + ' courses',
+        reportTable(['Course','Graded','Pass','Fail','Pass Rate','Avg Score'], rows));
+    }
+    else if (kind === 'low-gpa') {
+      const r = await apiFetch('/students/at-risk?gpa=2.5');
+      const list = (r.ok && r.body && r.body.data) ? r.body.data : [];
+      const rows = list.map(s => [s.studentId, (s.firstName||'')+' '+(s.lastName||''),
+        s.departmentName || '—', s.gpa != null ? Number(s.gpa).toFixed(2) : '—']);
+      reportShell('At-Risk Students (GPA < 2.5)',
+        list.length + ' students flagged',
+        list.length ? reportTable(['Student No','Name','Department','GPA'], rows)
+                    : '<p>No students below the threshold. ✅</p>');
+    }
+    else if (kind === 'gpa-transcript') {
+      const r = await apiFetch('/students');
+      const list = (r.ok && r.body && r.body.data) ? r.body.data : [];
+      const rows = list.map(s => [s.studentId, (s.firstName||'')+' '+(s.lastName||''),
+        s.programName || '—', 'Year ' + (s.yearOfStudy||1),
+        s.gpa != null ? Number(s.gpa).toFixed(2) : '—', s.status || 'Active']);
+      reportShell('GPA Transcripts',
+        list.length + ' students',
+        reportTable(['Student No','Name','Program','Year','GPA','Status'], rows));
+    }
+    else if (kind === 'enrollment-summary') {
+      const r = await apiFetch('/enrollments');
+      const list = (r.ok && r.body && r.body.data) ? r.body.data : [];
+      const byCourse = {};
+      list.forEach(e => { const c = (e.courseCode||'—') + ' — ' + (e.courseName||''); byCourse[c] = (byCourse[c]||0)+1; });
+      const rows = Object.entries(byCourse).sort((a,b) => b[1]-a[1]).map(([c,n]) => [c, n]);
+      reportShell('Enrollment Summary',
+        list.length + ' active enrollments across ' + rows.length + ' courses',
+        reportTable(['Course','Enrolled'], rows));
+    }
+    else { showToast('Unknown report', 'error'); return; }
+    showToast('Report ready', 'success');
+  } catch (e) {
+    showToast('Report failed: ' + e.message, 'error');
+  }
+}
+
+function fmtMoney(v) {
+  const n = Number(v) || 0;
+  return '¥' + n.toLocaleString('en-US', { maximumFractionDigits: 0 });
 }
 
 /* ─── PROFILE ─── */
