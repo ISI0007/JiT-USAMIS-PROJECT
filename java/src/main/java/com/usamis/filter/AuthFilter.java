@@ -30,6 +30,9 @@ public class AuthFilter implements Filter {
     private static final Set<String> PUBLIC_PATHS = Set.of(
         "/api/auth/login",
         "/api/auth/logout",
+        "/api/auth/register",
+        "/api/lookups/departments",
+        "/api/lookups/programs",
         "/api/health"
     );
 

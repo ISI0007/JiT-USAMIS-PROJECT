@@ -621,6 +621,11 @@ tbody td { padding: .7rem 1rem; color: var(--gray-800); vertical-align: middle; 
       </div>
       <button class="btn-login" onclick="doLogin()">Sign In →</button>
 
+      <div style="text-align:center;margin-top:1rem">
+        <span style="font-size:.8rem;color:var(--gray-400)">New student?</span>
+        <a href="#" onclick="showRegister();return false;" style="color:var(--gold-light);font-size:.8rem;font-weight:600;margin-left:.35rem">Create an account</a>
+      </div>
+
       <div class="demo-accounts">
         <p>Quick demo — click to prefill:</p>
         <div class="demo-chips">
@@ -630,6 +635,71 @@ tbody td { padding: .7rem 1rem; color: var(--gray-800); vertical-align: middle; 
           <span class="demo-chip" onclick="setDemo('finance','fin001','fin123')">💰 Finance</span>
           <span class="demo-chip" onclick="setDemo('student','stu001','stu123')">🎓 Student</span>
         </div>
+      </div>
+    </div>
+
+    <!-- ── STUDENT SELF-REGISTRATION ── -->
+    <div class="login-card" id="registerCard" style="display:none">
+      <div class="system-badge">🎓 New Student</div>
+      <h2>Create your account</h2>
+      <p class="subtitle">Register once and sign in with your own password</p>
+
+      <div class="form-group">
+        <label>Student ID <span style="color:var(--gray-400)">(e.g. STU2024001)</span></label>
+        <input class="form-control" id="regStudentId" type="text" placeholder="STU2024001" autocomplete="off">
+      </div>
+      <div class="form-group" style="display:flex;gap:.6rem">
+        <div style="flex:1">
+          <label>First name</label>
+          <input class="form-control" id="regFirst" type="text" placeholder="Given name" autocomplete="off">
+        </div>
+        <div style="flex:1">
+          <label>Last name</label>
+          <input class="form-control" id="regLast" type="text" placeholder="Family name" autocomplete="off">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Email</label>
+        <input class="form-control" id="regEmail" type="email" placeholder="you@jit.edu.cn" autocomplete="off">
+      </div>
+      <div class="form-group" style="display:flex;gap:.6rem">
+        <div style="flex:1">
+          <label>Department</label>
+          <select class="form-control" id="regDept"></select>
+        </div>
+        <div style="flex:1">
+          <label>Program</label>
+          <select class="form-control" id="regProgram"></select>
+        </div>
+      </div>
+      <div class="form-group" style="display:flex;gap:.6rem">
+        <div style="flex:1">
+          <label>Year of study</label>
+          <select class="form-control" id="regYear">
+            <option value="1">Year 1</option><option value="2">Year 2</option>
+            <option value="3">Year 3</option><option value="4">Year 4</option>
+          </select>
+        </div>
+        <div style="flex:1">
+          <label>Username</label>
+          <input class="form-control" id="regUser" type="text" placeholder="Choose a username" autocomplete="off">
+        </div>
+      </div>
+      <div class="form-group" style="display:flex;gap:.6rem">
+        <div style="flex:1">
+          <label>Password</label>
+          <input class="form-control" id="regPass" type="password" placeholder="Min 6 characters" autocomplete="new-password">
+        </div>
+        <div style="flex:1">
+          <label>Confirm password</label>
+          <input class="form-control" id="regPass2" type="password" placeholder="Repeat password" autocomplete="new-password">
+        </div>
+      </div>
+      <button class="btn-login" onclick="doRegister()">Create Account →</button>
+
+      <div style="text-align:center;margin-top:1rem">
+        <span style="font-size:.8rem;color:var(--gray-400)">Already registered?</span>
+        <a href="#" onclick="showLogin();return false;" style="color:var(--gold-light);font-size:.8rem;font-weight:600;margin-left:.35rem">Back to sign in</a>
       </div>
     </div>
   </div>
@@ -1761,6 +1831,93 @@ function mapAudit(a) {
 function setDemo(role, user, pass) {
   document.getElementById('loginUser').value = user;
   document.getElementById('loginPass').value = pass;
+}
+
+/* Toggle between the sign-in card and the self-registration card. */
+function showRegister() {
+  document.querySelector('.login-card').style.display = 'none';
+  document.getElementById('registerCard').style.display = 'block';
+  populateRegisterDropdowns();
+}
+function showLogin() {
+  document.getElementById('registerCard').style.display = 'none';
+  document.querySelector('.login-card').style.display = 'block';
+}
+
+/* Fill department + program pickers for the register form.
+   Uses the PUBLIC lookup endpoints; falls back to sensible defaults offline. */
+async function populateRegisterDropdowns() {
+  const deptSel = document.getElementById('regDept');
+  const progSel = document.getElementById('regProgram');
+  if (!deptSel || deptSel.dataset.filled === '1') return;
+  let depts = [], progs = [];
+  try {
+    const d = await apiFetch('/lookups/departments');
+    if (d.ok && d.body && d.body.data) depts = d.body.data;
+    const p = await apiFetch('/lookups/programs');
+    if (p.ok && p.body && p.body.data) progs = p.body.data;
+  } catch (e) { /* offline — fall through to defaults */ }
+  if (!depts.length) depts = [{ dbId:1, name:'Computer Science' }, { dbId:2, name:'Software Engineering' }];
+  if (!progs.length) progs = [{ dbId:1, name:'BSc Computer Science' }, { dbId:2, name:'BSc Software Engineering' }];
+  deptSel.innerHTML = depts.map(d => '<option value="' + d.dbId + '">' + (d.name || d.code) + '</option>').join('');
+  progSel.innerHTML = progs.map(p => '<option value="' + p.dbId + '">' + (p.name || p.code) + '</option>').join('');
+  deptSel.dataset.filled = '1';
+}
+
+async function doRegister() {
+  const payload = {
+    studentId:    document.getElementById('regStudentId').value.trim(),
+    firstName:    document.getElementById('regFirst').value.trim(),
+    lastName:     document.getElementById('regLast').value.trim(),
+    email:        document.getElementById('regEmail').value.trim(),
+    departmentId: parseInt(document.getElementById('regDept').value, 10),
+    programId:    parseInt(document.getElementById('regProgram').value, 10),
+    yearOfStudy:  parseInt(document.getElementById('regYear').value, 10),
+    username:     document.getElementById('regUser').value.trim(),
+    password:     document.getElementById('regPass').value
+  };
+  const pass2 = document.getElementById('regPass2').value;
+
+  if (!payload.studentId || !payload.firstName || !payload.lastName || !payload.email || !payload.username || !payload.password) {
+    showToast('Please fill in every field.', 'error'); return;
+  }
+  if (payload.password.length < 6) {
+    showToast('Password must be at least 6 characters.', 'error'); return;
+  }
+  if (payload.password !== pass2) {
+    showToast('Passwords do not match.', 'error'); return;
+  }
+
+  let result;
+  try {
+    result = await apiFetch('/auth/register', { method: 'POST', body: JSON.stringify(payload) });
+  } catch (e) {
+    showToast('Cannot reach the server. Is the backend running?', 'error'); return;
+  }
+
+  if (result.status === 409) {
+    showToast((result.body && result.body.message) || 'That account already exists.', 'warning'); return;
+  }
+  if (!result.ok || !result.body || !result.body.user) {
+    showToast((result.body && result.body.message) || 'Registration failed.', 'error'); return;
+  }
+
+  /* Auto-signed-in by the server: land the new student in the app. */
+  const u = result.body.user;
+  const roleMap = {
+    Admin:'admin', Registrar:'registrar', Lecturer:'lecturer',
+    Finance:'finance', Student:'student'
+  };
+  currentUser = {
+    id: u.id, username: u.username,
+    role: roleMap[u.roleName] || (u.roleName || '').toLowerCase(),
+    name: (u.firstName + ' ' + u.lastName).trim(),
+    title: u.roleName
+  };
+  showToast('Account created — welcome!', 'success');
+  document.getElementById('loginPage').style.display = 'none';
+  document.getElementById('app').style.display = 'flex';
+  await initApp();
 }
 
 async function doLogin() {
