@@ -25,23 +25,32 @@ public final class EnrollmentServlet extends HttpServlet {
 
     private static final Logger log = LoggerFactory.getLogger(EnrollmentServlet.class);
     private final AcademicDAO dao = new AcademicDAO();
+    private final com.usamis.dao.StudentDAO studentDAO = new com.usamis.dao.StudentDAO();
 
     @Override protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         UserDTO user = (UserDTO) req.getAttribute("currentUser");
+        boolean isStudent = user != null && "student".equalsIgnoreCase(user.roleName);
         String studentParam = req.getParameter("student");
+
+        if (isStudent) {
+            // SECURITY: a student may only ever see THEIR OWN enrollments.
+            // Resolve the caller's own students.id from students.user_id and
+            // ignore any ?student= they pass (was an IDOR: ?student=1 returned
+            // another student's rows). The old code also passed user.id (a
+            // users-table id) as a students id, so the list came back empty.
+            com.usamis.model.Models.Student me =
+                studentDAO.findByUserId(user.id).orElse(null);
+            if (me == null) { JsonUtil.success(resp, java.util.List.of()); return; }
+            JsonUtil.success(resp, dao.findEnrollmentsByStudent(me.id));
+            return;
+        }
 
         if (studentParam != null) {
             int sid = ValidationUtil.parseInt(studentParam, -1);
             if (sid < 0) { JsonUtil.badRequest(resp, "Invalid student ID"); return; }
-            // Students can only see their own enrollments
             JsonUtil.success(resp, dao.findEnrollmentsByStudent(sid));
         } else {
-            // Students get own; others get all
-            if ("student".equals(user.roleName)) {
-                JsonUtil.success(resp, dao.findEnrollmentsByStudent(user.id));
-            } else {
-                JsonUtil.success(resp, dao.findAllEnrollments());
-            }
+            JsonUtil.success(resp, dao.findAllEnrollments());
         }
     }
 

@@ -26,6 +26,7 @@ public final class FeeServlet extends HttpServlet {
 
     private static final Logger log = LoggerFactory.getLogger(FeeServlet.class);
     private final AcademicDAO dao = new AcademicDAO();
+    private final com.usamis.dao.StudentDAO studentDAO = new com.usamis.dao.StudentDAO();
 
     @Override protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         UserDTO user = (UserDTO) req.getAttribute("currentUser");
@@ -40,16 +41,21 @@ public final class FeeServlet extends HttpServlet {
         }
 
         // GET /api/fees?student=id
+        // SECURITY: a student may only ever read THEIR OWN fees. The old code
+        // let any student pass ?student=<other> and read another student's
+        // billing (IDOR), and its self-branch passed user.id (a users-table id)
+        // where a students.id was expected, so a student's own list was empty.
+        if ("student".equalsIgnoreCase(user.roleName)) {
+            com.usamis.model.Models.Student me = studentDAO.findByUserId(user.id).orElse(null);
+            if (me == null) { JsonUtil.success(resp, java.util.List.of()); return; }
+            JsonUtil.success(resp, dao.findFeesByStudent(me.id));
+            return;
+        }
+
         if (studentParam != null) {
             int sid = ValidationUtil.parseInt(studentParam, -1);
             if (sid < 0) { JsonUtil.badRequest(resp, "Invalid student ID"); return; }
             JsonUtil.success(resp, dao.findFeesByStudent(sid));
-            return;
-        }
-
-        // Students see only own fees
-        if ("student".equals(user.roleName)) {
-            JsonUtil.success(resp, dao.findFeesByStudent(user.id));
             return;
         }
 
