@@ -49,6 +49,36 @@ public final class AiModels {
         public double weight;
     }
 
+    /** Response DTO for an enrollment/demand forecast (LSTM). */
+    public static class ForecastDTO {
+        public String label;
+        public int    horizon;
+        public List<Double> history;   // the series that was sent
+        public List<Double> forecast;  // predicted next `horizon` points
+        public String modelName;
+        public String modelVersion;
+        public String trend;           // "rising" | "falling" | "flat"
+    }
+
+    /** One recommended course (graph recommender). */
+    public static class Recommendation {
+        public int    courseId;
+        public String code;
+        public String name;
+        public int    departmentId;
+        public int    credits;
+        public double score;
+        public List<String> reasons;
+    }
+
+    /** Response DTO for course recommendations. */
+    public static class RecommendDTO {
+        public int    studentId;
+        public List<Recommendation> recommendations;
+        public String modelName;
+        public String modelVersion;
+    }
+
     /** AI service health snapshot for the admin panel. */
     public static class ServiceStatus {
         public boolean reachable;

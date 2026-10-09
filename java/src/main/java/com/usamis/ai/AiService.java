@@ -195,6 +195,164 @@ public class AiService {
         return predictionDAO.findAtRisk(limit);
     }
 
+    /**
+     * Forecast enrollment for a course (or whole institution) from the count of
+     * active enrollments per semester, oldest first. Uses the LSTM service.
+     * Returns null if there is no history to model.
+     */
+    public ForecastDTO forecastEnrollment(Integer courseId, int steps) throws AiUnavailableException {
+        List<Double> series = enrollmentSeries(courseId);
+        if (series.size() < 4) return null; // LSTM window is 4; not enough history
+
+        JsonObject payload = new JsonObject();
+        JsonArray arr = new JsonArray();
+        for (Double v : series) arr.add(v);
+        payload.add("series", arr);
+        payload.addProperty("label", courseId == null ? "enrollment:all" : "enrollment:course" + courseId);
+        payload.addProperty("steps", steps);
+
+        AiClient.Result r = AiClient.forecastEnrollment(payload);
+        if (!r.ok) throw new AiUnavailableException(r.error);
+        JsonObject body = r.body;
+        if (body == null) throw new AiUnavailableException("empty AI response");
+
+        ForecastDTO dto = new ForecastDTO();
+        dto.label        = getS(body, "label", payload.get("label").getAsString());
+        dto.horizon      = (int) getD(body, "horizon", steps);
+        dto.modelName    = getS(body, "model_name", "lstm_enrollment");
+        dto.modelVersion = getS(body, "model_version", "unknown");
+        dto.history      = series;
+        dto.forecast     = new ArrayList<>();
+        if (body.has("forecast") && body.get("forecast").isJsonArray()) {
+            for (var el : body.getAsJsonArray("forecast")) dto.forecast.add(el.getAsDouble());
+        }
+        // Cheap, honest trend label from the mean of the forecast vs the tail of history.
+        double histTail = averageTail(series, 3);
+        double fcMean   = dto.forecast.stream().mapToDouble(Double::doubleValue).average().orElse(histTail);
+        if (fcMean > histTail * 1.02)      dto.trend = "rising";
+        else if (fcMean < histTail * 0.98) dto.trend = "falling";
+        else                               dto.trend = "flat";
+        return dto;
+    }
+
+    /** Active-enrollment counts per semester (chronological). courseId null => all courses. */
+    private List<Double> enrollmentSeries(Integer courseId) {
+        String sql = "SELECT e.semester, COUNT(*) AS cnt FROM enrollments e " +
+            (courseId != null ? "WHERE e.course_id = ? AND e.status = 'Active' " : "WHERE e.status = 'Active' ") +
+            "GROUP BY e.semester ORDER BY e.semester";
+        List<Double> out = new ArrayList<>();
+        try (java.sql.Connection conn = com.usamis.util.DatabaseConnection.getConnection();
+             java.sql.PreparedStatement ps = conn.prepareStatement(sql)) {
+            if (courseId != null) ps.setInt(1, courseId);
+            try (java.sql.ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) out.add((double) rs.getInt("cnt"));
+            }
+        } catch (Exception e) {
+            log.warn("enrollmentSeries(courseId={}) failed: {}", courseId, e.getMessage());
+        }
+        return out;
+    }
+
+    private static double averageTail(List<Double> xs, int n) {
+        int from = Math.max(0, xs.size() - n);
+        double sum = 0; int c = 0;
+        for (int i = from; i < xs.size(); i++) { sum += xs.get(i); c++; }
+        return c == 0 ? 0 : sum / c;
+    }
+
+    /**
+     * Course recommendations for one student from the live catalog + enrollment
+     * graph. Passed/satisfied courses come from grades >= 60 (or a passing
+     * letter); still-active enrollments are excluded by the service.
+     */
+    public RecommendDTO recommendCourses(int studentId, int topK) throws AiUnavailableException {
+        Optional<Student> sOpt = studentDAO.findById(studentId);
+        if (sOpt.isEmpty()) return null;
+        Student s = sOpt.get();
+
+        List<Course> courses = academicDAO.findAllCourses();
+        List<Enrollment> enrolls = academicDAO.findAllEnrollments();
+
+        JsonObject payload = new JsonObject();
+        payload.addProperty("student_id", studentId);
+        payload.addProperty("department_id", s.departmentId);
+
+        // Passed = grade >= 60; active = status Active with no failing grade.
+        List<Grade> grades = academicDAO.findGradesByStudent(studentId);
+        JsonArray passed = new JsonArray();
+        for (Grade g : grades) {
+            if (g.score != null && g.score >= 60.0) {
+                Integer cid = courseIdByCode(courses, g.courseCode);
+                if (cid != null) passed.add(cid);
+            }
+        }
+        JsonArray active = new JsonArray();
+        for (Enrollment e : enrolls) {
+            if (e.studentId == studentId && "Active".equalsIgnoreCase(e.status)) active.add(e.courseId);
+        }
+
+        // Catalog + enrollment edges for the graph.
+        JsonArray courseRows = new JsonArray();
+        for (Course c : courses) {
+            JsonObject o = new JsonObject();
+            o.addProperty("id", c.id);
+            o.addProperty("code", c.code);
+            o.addProperty("name", c.name);
+            o.addProperty("departmentId", c.departmentId);
+            o.addProperty("credits", c.credits);
+            courseRows.add(o);
+        }
+        JsonArray enrollmentRows = new JsonArray();
+        for (Enrollment e : enrolls) {
+            if (!"Active".equalsIgnoreCase(e.status)) continue;
+            JsonObject o = new JsonObject();
+            o.addProperty("studentId", e.studentId);
+            o.addProperty("courseId", e.courseId);
+            enrollmentRows.add(o);
+        }
+
+        payload.add("passed_course_ids", passed);
+        payload.add("enrolled_course_ids", active);
+        payload.add("courses", courseRows);
+        payload.add("enrollments", enrollmentRows);
+        payload.addProperty("top_k", topK);
+
+        AiClient.Result r = AiClient.recommendCourses(payload);
+        if (!r.ok) throw new AiUnavailableException(r.error);
+        JsonObject body = r.body;
+        if (body == null) throw new AiUnavailableException("empty AI response");
+
+        RecommendDTO dto = new RecommendDTO();
+        dto.studentId    = studentId;
+        dto.modelName    = getS(body, "model_name", "graph_course_recommender");
+        dto.modelVersion = getS(body, "model_version", "1.0.0");
+        dto.recommendations = new ArrayList<>();
+        if (body.has("recommendations") && body.get("recommendations").isJsonArray()) {
+            for (var el : body.getAsJsonArray("recommendations")) {
+                JsonObject o = el.getAsJsonObject();
+                Recommendation rec = new Recommendation();
+                rec.courseId     = (int) getD(o, "course_id", 0);
+                rec.code         = getS(o, "code", "");
+                rec.name         = getS(o, "name", "");
+                rec.departmentId = (int) getD(o, "department_id", 0);
+                rec.credits      = (int) getD(o, "credits", 3);
+                rec.score        = getD(o, "score", 0);
+                rec.reasons      = new ArrayList<>();
+                if (o.has("reasons") && o.get("reasons").isJsonArray()) {
+                    for (var rs : o.getAsJsonArray("reasons")) rec.reasons.add(rs.getAsString());
+                }
+                dto.recommendations.add(rec);
+            }
+        }
+        return dto;
+    }
+
+    private static Integer courseIdByCode(List<Course> courses, String code) {
+        if (code == null) return null;
+        for (Course c : courses) if (code.equalsIgnoreCase(c.code)) return c.id;
+        return null;
+    }
+
     /** AI service health snapshot for the admin panel. */
     public ServiceStatus status() {
         ServiceStatus st = new ServiceStatus();

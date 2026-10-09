@@ -31,7 +31,7 @@ import java.util.Optional;
  * it into six servlets would duplicate the token/permission guard six times.
  */
 @WebServlet(urlPatterns = {"/api/ai/status", "/api/ai/me", "/api/ai/insights", "/api/ai/insights/*",
-        "/api/ai/student/*", "/api/ai/predict/*"})
+        "/api/ai/student/*", "/api/ai/predict/*", "/api/ai/forecast/*", "/api/ai/recommend/*"})
 public class AiServlet extends HttpServlet {
 
     private static final Logger log = LoggerFactory.getLogger(AiServlet.class);
@@ -98,6 +98,47 @@ public class AiServlet extends HttpServlet {
                 .ifPresentOrElse(
                     p -> { try { JsonUtil.success(resp, p); } catch (IOException e) { throw new RuntimeException(e); } },
                     () -> { try { JsonUtil.success(resp, null); } catch (IOException e) { throw new RuntimeException(e); } });
+            return;
+        }
+
+        // GET /api/ai/forecast[/{courseId}|/all] — enrollment/demand forecast (VIEW_AI)
+        if ("/api/ai/forecast".equals(path)) {
+            if (!canViewAi(user)) { deny(resp, user, req); return; }
+            int steps = clamp(ValidationUtil.parseInt(req.getParameter("steps"), 3), 1, 12);
+            Integer courseId = null;
+            if (info != null && info.length() > 1) {
+                String raw = info.substring(1);
+                if (!"all".equalsIgnoreCase(raw)) {
+                    int cid = ValidationUtil.parseInt(raw, -1);
+                    if (cid < 0) { JsonUtil.badRequest(resp, "Invalid course id"); return; }
+                    courseId = cid;
+                }
+            }
+            try {
+                ForecastDTO dto = aiService.forecastEnrollment(courseId, steps);
+                if (dto == null) { JsonUtil.error(resp, 422, "Not enough enrollment history to forecast"); return; }
+                JsonUtil.success(resp, dto);
+            } catch (AiUnavailableException e) {
+                log.warn("AI forecast unavailable: {}", e.getMessage());
+                JsonUtil.error(resp, 503, "AI service unavailable: " + e.getMessage());
+            }
+            return;
+        }
+
+        // GET /api/ai/recommend/{studentId} — course recommendations (VIEW_AI)
+        if ("/api/ai/recommend".equals(path) && info != null && info.length() > 1) {
+            if (!canViewAi(user)) { deny(resp, user, req); return; }
+            int studentId = ValidationUtil.parseInt(info.substring(1), -1);
+            if (studentId < 0) { JsonUtil.badRequest(resp, "Invalid student id"); return; }
+            int topK = clamp(ValidationUtil.parseInt(req.getParameter("top_k"), 5), 1, 20);
+            try {
+                RecommendDTO dto = aiService.recommendCourses(studentId, topK);
+                if (dto == null) { JsonUtil.notFound(resp, "Student"); return; }
+                JsonUtil.success(resp, dto);
+            } catch (AiUnavailableException e) {
+                log.warn("AI recommend unavailable: {}", e.getMessage());
+                JsonUtil.error(resp, 503, "AI service unavailable: " + e.getMessage());
+            }
             return;
         }
 

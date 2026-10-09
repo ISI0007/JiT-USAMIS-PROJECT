@@ -208,11 +208,16 @@ The AI service holds **no DB credentials** — features arrive in the request bo
 | Capability           | Model   | Endpoint (AI service)          | Java endpoint                  |
 |----------------------|---------|--------------------------------|--------------------------------|
 | Performance prediction | MLP   | POST /api/v1/predict/performance | POST /api/ai/predict/{id}     |
-| Enrollment forecasting | LSTM  | POST /api/v1/forecast/enrollment | (planned)                     |
-| Course recommendations | Graph | POST /api/v1/recommend/courses   | (planned)                     |
+| Enrollment forecasting | LSTM  | POST /api/v1/forecast/enrollment | GET /api/ai/forecast/{id\|all} |
+| Course recommendations | Graph | POST /api/v1/recommend/courses   | GET /api/ai/recommend/{id}    |
 | Service health         | —     | GET  /health                    | GET /api/ai/status            |
 | Prediction history     | —     | —                              | GET /api/ai/insights          |
 | At-risk queue          | —     | —                              | GET /api/ai/insights/at-risk  |
+
+`/api/ai/forecast/{id}` forecasts a course's active-enrollment trend (or the whole
+institution with `all`); it returns `422` when fewer than 4 semesters of history exist,
+which is the honest answer rather than a fabricated curve. `/api/ai/recommend/{id}`
+ranks eligible courses from the live catalog + co-enrollment graph.
 
 ### Honesty about accuracy
 
