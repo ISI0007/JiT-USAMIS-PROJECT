@@ -65,6 +65,19 @@ public class StudentServlet extends HttpServlet {
         }
 
         // GET /api/students — with optional filters
+        // SECURITY: a student may only list THEMSELVES. Returning the full roster
+        // here leaked every other student's PII (the nav hides the page, but the
+        // endpoint must enforce ownership, not the UI).
+        if ("student".equalsIgnoreCase(user.roleName)) {
+            Optional<Student> me = studentDAO.findByUserId(user.id);
+            if (me.isPresent()) {
+                JsonUtil.success(resp, List.of(me.get()));
+            } else {
+                JsonUtil.success(resp, List.of());
+            }
+            return;
+        }
+
         String search = req.getParameter("search");
         String deptParam = req.getParameter("dept");
 
@@ -78,7 +91,8 @@ public class StudentServlet extends HttpServlet {
             students = studentDAO.findAll();
         }
 
-        // Students see all list (for course selection purposes); only their own data matters
+        // Staff list — only roles with a legitimate need may see the roster.
+        // (Reached only by non-students; students already returned above.)
         JsonUtil.success(resp, students);
     }
 

@@ -67,6 +67,20 @@ public class StudentDAO {
         return Optional.empty();
     }
 
+    public Optional<Student> findByUserId(int userId) {
+        String sql = BASE_SELECT + "WHERE s.user_id = ? GROUP BY s.id, d.name, p.name";
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, userId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) return Optional.of(mapStudent(rs));
+            }
+        } catch (SQLException e) {
+            log.error("findByUserId {}", userId, e);
+        }
+        return Optional.empty();
+    }
+
     public Optional<Student> findByStudentId(String studentId) {
         String sql = BASE_SELECT + "WHERE s.student_id = ? GROUP BY s.id, d.name, p.name";
         try (Connection conn = DatabaseConnection.getConnection();

@@ -12,6 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.Optional;
 
 /* ══════════════════════════════════════════════════════════════
    GRADE SERVLET
@@ -25,17 +26,23 @@ public final class GradeServlet extends HttpServlet {
 
     private static final Logger log = LoggerFactory.getLogger(GradeServlet.class);
     private final AcademicDAO dao = new AcademicDAO();
+    private final com.usamis.dao.StudentDAO studentDAO = new com.usamis.dao.StudentDAO();
 
     @Override protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         UserDTO user = (UserDTO) req.getAttribute("currentUser");
         String studentParam = req.getParameter("student");
 
-        if ("student".equals(user.roleName)) {
-            // Students see only their own grades — user.id maps to users table, not students table
-            // In a full implementation, look up student.user_id = user.id
-            JsonUtil.success(resp, dao.findAllGrades().stream()
-                .filter(g -> g.studentId != null)
-                .toList());
+        if ("student".equalsIgnoreCase(user.roleName)) {
+            // SECURITY: a student may ONLY see their own grades. The old code
+            // returned every grade row (all students) because the users.id ->
+            // students.user_id mapping was never resolved. Resolve it properly:
+            // if the caller has no linked student row, they see nothing.
+            Optional<Student> me = studentDAO.findByUserId(user.id);
+            if (me.isEmpty() || me.get().id <= 0) {
+                JsonUtil.success(resp, java.util.List.of());
+                return;
+            }
+            JsonUtil.success(resp, dao.findGradesByStudent(me.get().id));
             return;
         }
 
