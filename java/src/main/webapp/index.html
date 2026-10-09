@@ -2157,6 +2157,21 @@ function renderDashboard() {
     return;
   }
 
+  // Non-student roles see the institution-wide charts, at-risk list and audit.
+  // A student must not see these AT ALL (not even a locked placeholder — those
+  // just add clutter). Hide the whole cards from the student view.
+  if (r === 'student') {
+    const chartCard  = document.getElementById('deptChart');
+    const riskCard   = document.getElementById('atRiskList');
+    const auditCard  = document.getElementById('recentAudit');
+    [chartCard, riskCard, auditCard].forEach(el => {
+      if (!el) return;
+      const card = el.closest('.card');
+      if (card) card.style.display = 'none';
+    });
+    return;
+  }
+
   const depts = {};
   DB.students.forEach(s => { depts[s.dept] = (depts[s.dept] || 0) + 1; });
   const maxV = Math.max(...Object.values(depts));
