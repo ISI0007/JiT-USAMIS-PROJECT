@@ -1644,16 +1644,21 @@ async function apiFetch(path, options = {}) {
    Views are backed by the REST API (PostgreSQL), not a client-side mock.
    Each loader fills the matching DB.* slice from the server so the existing
    render functions below can keep working unchanged. */
-const DB = { students: [], courses: [], enrollments: [], grades: [], fees: [], users: [], audit: [] };
+const DB = { students: [], courses: [], enrollments: [], grades: [], fees: [], users: [], audit: [], dashboard: null, permissions: null };
 
 async function loadView(section) {
   try {
     switch (section) {
       case 'dashboard': {
         const r = await apiFetch('/dashboard');
-        if (r.ok && r.body && r.body.data) DB.dashboard = r.body.data;
-        const a = await apiFetch('/audit?limit=5');
-        if (a.ok && a.body && a.body.data) DB.audit = a.body.data.map(mapAudit);
+        DB.dashboard = (r.ok && r.body && r.body.data) ? r.body.data : null;
+        // Students only see their OWN dashboard; the audit feed is staff-only.
+        if (currentUser.role !== 'student') {
+          const a = await apiFetch('/audit?limit=5');
+          if (a.ok && a.body && a.body.data) DB.audit = a.body.data.map(mapAudit);
+        } else {
+          DB.audit = [];
+        }
         break;
       }
       case 'students': {
@@ -2110,12 +2115,22 @@ function renderDashboard() {
       { icon:'⭐', iconClass:'teal',  value: avgGPA, label:'Class Average GPA',       change:'', up:true },
     ];
   } else {
-    // student
+    // student — REAL data only, from /api/dashboard (self-scoped) or, as a
+    // fallback, the student's own grades/fees/enrollments already loaded.
+    const d = DB.dashboard || {};
+    const myEnr = (d.myEnrollments != null) ? d.myEnrollments : DB.enrollments.length;
+    const myGpa = (d.myGpa != null) ? d.myGpa : '—';
+    const paid  = (d.myFeesPaid != null) ? d.myFeesPaid : 0;
+    const paidFmt = paid.toLocaleString('en-US', { maximumFractionDigits: 0 });
+    const best  = (d.myBestScore != null && d.myBestScore > 0) ? (d.myBestScore + '%') : '—';
+    const bestLbl = d.myBestCourse ? (d.myBestCourse + ' — best') : 'No grades yet';
+    const gpaLbl = (myGpa === '—') ? 'No grades yet'
+                 : (myGpa >= 3.5 ? 'Excellent' : myGpa >= 3.0 ? 'Good' : myGpa >= 2.5 ? 'Satisfactory' : 'Needs improvement');
     stats = [
-      { icon:'📝', iconClass:'gold',  value: DB.enrollments.filter(e => e.student === 'STU2024004').length, label:'My Enrollments', change:'This semester', up:true },
-      { icon:'⭐', iconClass:'navy',  value: '3.9', label:'My GPA',     change:'Top of class', up:true },
-      { icon:'💳', iconClass:'teal',  value: '¥18K', label:'Fees Paid', change:'Fully cleared', up:true },
-      { icon:'✅', iconClass:'green', value: '97%',  label:'Best Score', change:'CS301 — A+', up:true },
+      { icon:'📝', iconClass:'gold',  value: myEnr, label:'My Enrollments', change:'Current semester', up:true },
+      { icon:'⭐', iconClass:'navy',  value: myGpa, label:'My GPA',         change: gpaLbl,            up: (myGpa !== '—' && myGpa >= 2.5) },
+      { icon:'💳', iconClass:'teal',  value: '¥' + paidFmt, label:'Fees Paid', change: (d.myFeesOutstanding > 0 ? 'Balance outstanding' : 'Fully cleared'), up: !(d.myFeesOutstanding > 0) },
+      { icon:'✅', iconClass:'green', value: best,  label:'Best Score',     change: bestLbl,           up: true },
     ];
   }
 
@@ -2131,6 +2146,17 @@ function renderDashboard() {
   `).join('');
 
   // Bar chart
+  // Bar chart — staff only. Students get no institution-wide distribution.
+  if (r === 'student') {
+    const bc = document.getElementById('deptChart');
+    if (bc) bc.innerHTML = '<div class="empty-state"><div class="empty-icon">🔒</div><p>Institution-wide charts are not available to students</p></div>';
+    const ar = document.getElementById('atRiskList');
+    if (ar) ar.innerHTML = '<div class="empty-state"><div class="empty-icon">🔒</div><p>Not available to students</p></div>';
+    const ra = document.getElementById('recentAudit');
+    if (ra) ra.innerHTML = '<div class="empty-state"><div class="empty-icon">🔒</div><p>Audit activity is staff-only</p></div>';
+    return;
+  }
+
   const depts = {};
   DB.students.forEach(s => { depts[s.dept] = (depts[s.dept] || 0) + 1; });
   const maxV = Math.max(...Object.values(depts));
@@ -2368,7 +2394,7 @@ function renderGrades() {
   document.getElementById('gradeCount').textContent = DB.grades.length + ' records';
   const canEdit = ['admin','lecturer'].includes(currentUser.role);
   const data = currentUser.role === 'student'
-    ? DB.grades.filter(g => g.studentId === 'STU2024004')
+    ? DB.grades.filter(g => g.studentId === currentUser.studentNo)
     : DB.grades;
 
   document.getElementById('gradesTbody').innerHTML = data.map((g,i) => `
@@ -2460,7 +2486,7 @@ function renderFees() {
   `;
 
   const fees = currentUser.role === 'student'
-    ? DB.fees.filter(f => f.student === 'STU2024004')
+    ? DB.fees.filter(f => f.student === currentUser.studentNo)
     : DB.fees;
 
   document.getElementById('feesTbody').innerHTML = fees.map((f,i) => {
