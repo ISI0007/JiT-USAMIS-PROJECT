@@ -847,7 +847,7 @@ tbody td { padding: .7rem 1rem; color: var(--gray-800); vertical-align: middle; 
       <div class="page-section" id="sec-enrollment">
         <div class="action-bar">
           <input class="search-input" placeholder="🔍 Search enrollments..." oninput="filterTable(this,'enrollTable')">
-          <button class="btn btn-gold" onclick="openModal('modalEnroll')">+ Enroll Student</button>
+          <button class="btn btn-gold" id="btnEnrollStudent" onclick="openEnrollModal()">+ Enroll Student</button>
         </div>
         <div class="card">
           <div class="card-header">
@@ -2711,6 +2711,16 @@ function populateDropdowns() {
 function openModal(id) {
   document.getElementById(id).classList.add('open');
   populateDropdowns();
+}
+
+/* Open the enroll modal. Staff may enroll any student; a STUDENT may not enroll
+   at all (the server rejects it), so we surface a clear message instead. */
+function openEnrollModal() {
+  if (currentUser.role === 'student') {
+    showToast('Only staff can enroll students. You can view your own enrollments.', 'info');
+    return;
+  }
+  openModal('modalEnroll');
 }
 function closeModal(id) {
   document.getElementById(id).classList.remove('open');

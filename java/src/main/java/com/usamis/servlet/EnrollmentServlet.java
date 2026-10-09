@@ -45,6 +45,7 @@ public final class EnrollmentServlet extends HttpServlet {
             return;
         }
 
+        // Staff: optional filters, otherwise the full list.
         if (studentParam != null) {
             int sid = ValidationUtil.parseInt(studentParam, -1);
             if (sid < 0) { JsonUtil.badRequest(resp, "Invalid student ID"); return; }
