@@ -955,27 +955,16 @@ tbody td { padding: .7rem 1rem; color: var(--gray-800); vertical-align: middle; 
           </div>
         </div>
         <div class="card">
-          <div class="card-header"><span class="card-title">🔐 RBAC Permissions Matrix</span></div>
+          <div class="card-header"><span class="card-title">🔐 RBAC Permissions Matrix</span>
+            <span class="badge badge-navy" id="rbacBadge">live</span></div>
           <div class="card-body">
+            <p style="font-size:.8rem;color:var(--gray-600);margin-bottom:.75rem">
+              Sourced live from the database (<code>role_permissions</code>) — this is the same
+              table the server enforces on every request.</p>
             <div class="table-wrap">
-              <table class="perm-table">
-                <thead>
-                  <tr>
-                    <th>Permission</th>
-                    <th>Admin</th><th>Registrar</th><th>Lecturer</th><th>Finance</th><th>Student</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr><td>Manage Users</td><td><span class="perm-yes">✔</span></td><td><span class="perm-no">✘</span></td><td><span class="perm-no">✘</span></td><td><span class="perm-no">✘</span></td><td><span class="perm-no">✘</span></td></tr>
-                  <tr><td>Manage Students</td><td><span class="perm-yes">✔</span></td><td><span class="perm-yes">✔</span></td><td><span class="perm-no">✘</span></td><td><span class="perm-no">✘</span></td><td><span class="perm-no">✘</span></td></tr>
-                  <tr><td>Manage Courses</td><td><span class="perm-yes">✔</span></td><td><span class="perm-yes">✔</span></td><td><span class="perm-no">✘</span></td><td><span class="perm-no">✘</span></td><td><span class="perm-no">✘</span></td></tr>
-                  <tr><td>Enter Grades</td><td><span class="perm-yes">✔</span></td><td><span class="perm-no">✘</span></td><td><span class="perm-partial">Own Courses</span></td><td><span class="perm-no">✘</span></td><td><span class="perm-no">✘</span></td></tr>
-                  <tr><td>Manage Fees</td><td><span class="perm-yes">✔</span></td><td><span class="perm-no">✘</span></td><td><span class="perm-no">✘</span></td><td><span class="perm-yes">✔</span></td><td><span class="perm-no">✘</span></td></tr>
-                  <tr><td>View Grades</td><td><span class="perm-yes">✔</span></td><td><span class="perm-yes">✔</span></td><td><span class="perm-yes">✔</span></td><td><span class="perm-no">✘</span></td><td><span class="perm-partial">Own Only</span></td></tr>
-                  <tr><td>View Own Profile</td><td><span class="perm-yes">✔</span></td><td><span class="perm-yes">✔</span></td><td><span class="perm-yes">✔</span></td><td><span class="perm-yes">✔</span></td><td><span class="perm-yes">✔</span></td></tr>
-                  <tr><td>View Audit Log</td><td><span class="perm-yes">✔</span></td><td><span class="perm-no">✘</span></td><td><span class="perm-no">✘</span></td><td><span class="perm-no">✘</span></td><td><span class="perm-no">✘</span></td></tr>
-                  <tr><td>Generate Reports</td><td><span class="perm-yes">✔</span></td><td><span class="perm-yes">✔</span></td><td><span class="perm-partial">Own Data</span></td><td><span class="perm-yes">✔</span></td><td><span class="perm-no">✘</span></td></tr>
-                </tbody>
+              <table class="perm-table" id="rbacTable">
+                <thead><tr id="rbacHead"><th>Permission</th></tr></thead>
+                <tbody id="rbacTbody"></tbody>
               </table>
             </div>
           </div>
@@ -1695,6 +1684,8 @@ async function loadView(section) {
       case 'users': {
         const r = await apiFetch('/users');
         DB.users = r.ok && r.body && r.body.data ? r.body.data.map(mapUser) : [];
+        const pm = await apiFetch('/permissions');
+        DB.permissions = (pm.ok && pm.body && pm.body.data) ? pm.body.data : null;
         break;
       }
       case 'audit': {
@@ -2535,6 +2526,31 @@ function renderUsers() {
       </td>
     </tr>
   `).join('');
+  renderRbacMatrix();
+}
+
+/* Render the RBAC matrix from the live /api/permissions payload (admin only).
+   Columns = roles, rows = permissions, cell = granted or not. */
+function renderRbacMatrix() {
+  const head = document.getElementById('rbacHead');
+  const tbody = document.getElementById('rbacTbody');
+  if (!head || !tbody) return;
+  const m = DB.permissions;
+  if (!m || !m.roles || !m.permissions) {
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--gray-400);padding:1.25rem">Permissions unavailable.</td></tr>';
+    return;
+  }
+  head.innerHTML = '<th>Permission</th>' +
+    m.roles.map(r => '<th>' + (r.label || r.name) + '</th>').join('');
+  const grants = m.grants || {};
+  tbody.innerHTML = m.permissions.map(p => {
+    const cells = m.roles.map(r => {
+      const has = (grants[r.name] || []).includes(p.name);
+      return '<td>' + (has ? '<span class="perm-yes">✔</span>' : '<span class="perm-no">✘</span>') + '</td>';
+    }).join('');
+    return '<tr><td>' + (p.label || p.name) +
+      ' <span style="color:var(--gray-400);font-size:.7rem">' + (p.module || '') + '</span></td>' + cells + '</tr>';
+  }).join('');
 }
 
 async function deleteUser(i) {
@@ -2623,7 +2639,32 @@ function renderProfile() {
       <tr><td style="padding:.5rem 0;color:var(--gray-600)">System</td><td>USAMIS v1.0</td></tr>
       <tr><td style="padding:.5rem 0;color:var(--gray-600)">Session</td><td>Active — ${new Date().toLocaleTimeString()}</td></tr>
     </table>
+    <div style="margin-top:1.5rem;padding-top:1.25rem;border-top:1px solid var(--gray-100)" id="myPermsBox">
+      <div style="font-weight:700;color:var(--navy);margin-bottom:.6rem">🔐 Your Permissions</div>
+      <div id="myPermsList" style="font-size:.82rem;color:var(--gray-600)">Loading…</div>
+    </div>
   `;
+  loadMyPermissions();
+}
+
+/* Show the CURRENT user exactly what their role is allowed to do, straight from
+   the server (role_permissions) — not a guess. */
+async function loadMyPermissions() {
+  const box = document.getElementById('myPermsList');
+  if (!box) return;
+  const r = await apiFetch('/permissions/mine');
+  if (!(r.ok && r.body && r.body.data && r.body.data.permissions)) {
+    box.innerHTML = '<span style="color:var(--gray-400)">Could not load permissions.</span>';
+    return;
+  }
+  const perms = r.body.data.permissions;
+  if (!perms.length) {
+    box.innerHTML = '<span style="color:var(--gray-400)">No explicit permissions granted.</span>';
+    return;
+  }
+  box.innerHTML = '<div style="display:flex;flex-wrap:wrap;gap:.4rem">' +
+    perms.map(p => '<span class="badge badge-navy" title="' + (p.module || '') + '">' +
+      (p.label || p.name) + '</span>').join('') + '</div>';
 }
 
 /* ─── HELPERS ─── */
