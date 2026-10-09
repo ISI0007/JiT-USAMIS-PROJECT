@@ -41,7 +41,21 @@ public class StudentServlet extends HttpServlet {
         String pathInfo = req.getPathInfo(); // e.g. "/123" or "/at-risk"
 
         // GET /api/students/at-risk
+        // SECURITY: same scoping as the roster. A student may only see THEMSELVES;
+        // staff without roster permission get 403. Previously this returned every
+        // at-risk student to any authenticated caller (IDOR/PII leak).
         if ("/at-risk".equals(pathInfo)) {
+            if ("student".equalsIgnoreCase(user.roleName)) {
+                Optional<Student> me = studentDAO.findByUserId(user.id);
+                if (me.isEmpty() || me.get().gpa >= 2.5) {
+                    JsonUtil.success(resp, List.of());
+                } else {
+                    JsonUtil.success(resp, List.of(me.get()));
+                }
+                return;
+            }
+            if (!canListRoster(user)) { JsonUtil.forbidden(resp); return; }
+
             double threshold = 2.5;
             try { threshold = Double.parseDouble(req.getParameter("gpa")); } catch (Exception ignored) {}
             JsonUtil.success(resp, studentDAO.findAtRisk(threshold));
