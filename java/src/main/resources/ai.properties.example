@@ -1,6 +1,0 @@
-# USAMIS -> AI service connection (copy to ai.properties; ai.properties is git-ignored)
-# The AI service must NOT be reachable from the public internet.
-ai.base.url=http://127.0.0.1:8099
-# Must match AI_SERVICE_TOKEN in the ai-service .env
-ai.service.token=change-me-to-a-long-random-value
-ai.timeout.ms=4000

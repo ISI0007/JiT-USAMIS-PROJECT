@@ -1077,116 +1077,6 @@ tbody td { padding: .7rem 1rem; color: var(--gray-800); vertical-align: middle; 
         </div>
       </div>
 
-      <!-- ── AI INSIGHTS ── -->
-      <div class="page-section" id="sec-ai">
-        <div class="alert alert-info" style="margin-bottom:1rem">
-          🧠 <strong>AI Insights</strong> — predictions come from an isolated Python deep-learning service.
-          They are <em>decision support</em>, not decisions. Model version and training source are shown with every result.
-        </div>
-
-        <div class="stats-grid" id="aiStats">
-          <div class="stat-card"><div class="stat-icon" style="background:rgba(46,125,138,.12)">📊</div>
-            <div><div class="stat-value" id="aiPredCount">—</div><div class="stat-label">Stored Predictions</div></div></div>
-          <div class="stat-card"><div class="stat-icon" style="background:rgba(239,68,68,.12)">⚠️</div>
-            <div><div class="stat-value" id="aiRiskCount">—</div><div class="stat-label">Students At Risk</div></div></div>
-          <div class="stat-card"><div class="stat-icon" style="background:rgba(34,197,94,.12)">🟢</div>
-            <div><div class="stat-value" id="aiSvcStatus">—</div><div class="stat-label">AI Service</div></div></div>
-          <div class="stat-card"><div class="stat-icon" style="background:rgba(200,169,110,.18)">🧬</div>
-            <div><div class="stat-value" id="aiModelVer" style="font-size:1rem">—</div><div class="stat-label">Active Model</div></div></div>
-        </div>
-
-        <div class="card" style="margin-bottom:1.5rem">
-          <div class="card-header">
-            <span class="card-title">🎯 Student Performance Prediction</span>
-            <span class="badge badge-navy" id="aiPredictMeta">MLP</span>
-          </div>
-          <div class="card-body">
-            <div class="form-row" style="align-items:flex-end;gap:1rem">
-              <div class="form-group-app" style="flex:1">
-                <label>Student</label>
-                <select class="form-control-app" id="aiStudentSelect"></select>
-              </div>
-              <div class="form-group-app" style="flex:0 0 auto">
-                <button class="btn btn-gold" onclick="runAiPrediction()">🔮 Predict Performance</button>
-              </div>
-            </div>
-            <div id="aiResult" style="margin-top:1.25rem"></div>
-          </div>
-        </div>
-
-        <div class="card" style="margin-bottom:1.5rem" id="aiForecastCard">
-          <div class="card-header">
-            <span class="card-title">📈 Enrollment Forecast</span>
-            <span class="badge badge-navy" id="aiForecastMeta">LSTM</span>
-          </div>
-          <div class="card-body">
-            <div class="form-row" style="align-items:flex-end;gap:1rem">
-              <div class="form-group-app" style="flex:1">
-                <label>Scope</label>
-                <select class="form-control-app" id="aiForecastScope"></select>
-              </div>
-              <div class="form-group-app" style="flex:0 0 auto">
-                <label>Horizon</label>
-                <select class="form-control-app" id="aiForecastSteps">
-                  <option value="2">2 semesters</option>
-                  <option value="3" selected>3 semesters</option>
-                  <option value="4">4 semesters</option>
-                  <option value="6">6 semesters</option>
-                </select>
-              </div>
-              <div class="form-group-app" style="flex:0 0 auto">
-                <button class="btn btn-gold" onclick="runAiForecast()">📈 Forecast</button>
-              </div>
-            </div>
-            <div id="aiForecastResult" style="margin-top:1.25rem"></div>
-          </div>
-        </div>
-
-        <div class="card" style="margin-bottom:1.5rem" id="aiRecommendCard">
-          <div class="card-header">
-            <span class="card-title">🎓 Course Recommendations</span>
-            <span class="badge badge-navy" id="aiRecommendMeta">Graph</span>
-          </div>
-          <div class="card-body">
-            <div class="form-row" style="align-items:flex-end;gap:1rem">
-              <div class="form-group-app" style="flex:1">
-                <label>Student</label>
-                <select class="form-control-app" id="aiRecommendStudent"></select>
-              </div>
-              <div class="form-group-app" style="flex:0 0 auto">
-                <button class="btn btn-gold" onclick="runAiRecommend()">🎓 Recommend Courses</button>
-              </div>
-            </div>
-            <div id="aiRecommendResult" style="margin-top:1.25rem"></div>
-          </div>
-        </div>
-
-        <div class="card" style="margin-bottom:1.5rem">
-          <div class="card-header">
-            <span class="card-title">⚠️ Advisor Queue — Students At Risk</span>
-            <span class="badge badge-danger" id="aiRiskBadge">0</span>
-          </div>
-          <div class="table-wrap">
-            <table id="aiRiskTable">
-              <thead><tr><th>Student</th><th>Predicted</th><th>Risk</th><th>Model</th><th>When</th></tr></thead>
-              <tbody id="aiRiskTbody"></tbody>
-            </table>
-          </div>
-        </div>
-
-        <div class="card">
-          <div class="card-header">
-            <span class="card-title">📜 Recent Prediction History</span>
-            <span class="badge badge-navy" id="aiHistBadge">0</span>
-          </div>
-          <div class="table-wrap">
-            <table id="aiHistTable">
-              <thead><tr><th>Student</th><th>Predicted</th><th>Risk P</th><th>At Risk</th><th>Type</th><th>Model</th><th>When</th></tr></thead>
-              <tbody id="aiHistTbody"></tbody>
-            </table>
-          </div>
-        </div>
-      </div>
       <!-- ── PROFILE ── -->
       <div class="page-section" id="sec-profile">
         <div class="two-col">
@@ -1742,7 +1632,6 @@ const NAV_CONFIG = {
     { label:'Administration', divider:true },
     { section:'users',     icon:'👤', label:'User Management' },
     { section:'reports',   icon:'📊', label:'Reports' },
-    { section:'ai',        icon:'🧠', label:'AI Insights' },
     { section:'audit',     icon:'🔍', label:'Audit Log' },
     { label:'Account', divider:true },
     { section:'profile',   icon:'⚙️', label:'My Profile' },
@@ -1754,7 +1643,6 @@ const NAV_CONFIG = {
     { section:'courses',   icon:'📚', label:'Courses' },
     { section:'enrollment',icon:'📝', label:'Enrollment' },
     { section:'grades',    icon:'🏆', label:'View Grades' },
-    { section:'ai',        icon:'🧠', label:'AI Insights' },
     { label:'Reports', divider:true },
     { section:'reports',   icon:'📊', label:'Reports' },
     { label:'Account', divider:true },
@@ -1765,7 +1653,6 @@ const NAV_CONFIG = {
     { label:'Teaching', divider:true },
     { section:'courses',   icon:'📚', label:'My Courses' },
     { section:'grades',    icon:'🏆', label:'Enter Grades' },
-    { section:'ai',        icon:'🧠', label:'AI Insights' },
     { label:'Account', divider:true },
     { section:'profile',   icon:'⚙️', label:'My Profile' },
   ],
@@ -1775,7 +1662,6 @@ const NAV_CONFIG = {
     { section:'fees',      icon:'💰', label:'Fees & Payments' },
     { section:'students',  icon:'👥', label:'View Students' },
     { section:'reports',   icon:'📊', label:'Financial Reports' },
-    { section:'ai',        icon:'🧠', label:'AI Insights' },
     { label:'Account', divider:true },
     { section:'profile',   icon:'⚙️', label:'My Profile' },
   ],
@@ -1783,7 +1669,6 @@ const NAV_CONFIG = {
     { section:'dashboard', icon:'🏠', label:'My Dashboard' },
     { label:'Academic', divider:true },
     { section:'grades',    icon:'🏆', label:'My Grades' },
-    { section:'ai',        icon:'🧠', label:'AI Insight' },
     { section:'enrollment',icon:'📝', label:'My Enrollments' },
     { label:'Finance', divider:true },
     { section:'fees',      icon:'💰', label:'My Fees' },
@@ -1868,22 +1753,6 @@ async function loadView(section) {
       case 'audit': {
         const r = await apiFetch('/audit?limit=100');
         DB.audit = r.ok && r.body && r.body.data ? r.body.data.map(mapAudit) : [];
-        break;
-      }
-      case 'ai': {
-        const s = await apiFetch('/ai/status');
-        DB.aiStatus = (s.ok && s.body && s.body.data) ? s.body.data : null;
-        if (currentUser.role === 'student') {
-          const me = await apiFetch('/ai/me');
-          DB.aiMine = (me.ok && me.body && me.body.data) ? me.body.data : null;
-        } else {
-          const st = await apiFetch('/students');
-          DB.students = (st.ok && st.body && st.body.data) ? st.body.data.map(mapStudent) : DB.students;
-          const ins = await apiFetch('/ai/insights?limit=25');
-          DB.aiInsights = (ins.ok && ins.body && ins.body.data) ? ins.body.data : [];
-          const risk = await apiFetch('/ai/insights/at-risk?limit=25');
-          DB.aiRisk = (risk.ok && risk.body && risk.body.data) ? risk.body.data : [];
-        }
         break;
       }
     }
@@ -2192,7 +2061,6 @@ const PAGE_TITLES = {
   fees:      { icon:'💰', label:'Fees & Payments' },
   users:     { icon:'👤', label:'User Management' },
   reports:   { icon:'📊', label:'Management Reports' },
-  ai:        { icon:'🧠', label:'AI Insights' },
   audit:     { icon:'🔍', label:'Audit Log' },
   profile:   { icon:'⚙️', label:'My Profile' },
 };
@@ -2221,7 +2089,6 @@ function navigateTo(section) {
     fees:       renderFees,
     users:      renderUsers,
     audit:      renderAudit,
-    ai:         renderAi,
     reports:    renderReports,
     profile:    renderProfile,
   };
@@ -2249,7 +2116,6 @@ async function navigateToLive(section) {
     fees:       renderFees,
     users:      renderUsers,
     audit:      renderAudit,
-    ai:         renderAi,
     reports:    renderReports,
     profile:    renderProfile,
   };
@@ -3301,212 +3167,6 @@ function filterTable(input, tableId) {
   });
 }
 
-/* ─── AI INSIGHTS ───────────────────────────────────────────────── */
-/*
-   AI views are decision-support only. Every number is labelled with the model
-   version and its training source so nobody mistakes a synthetic-data prediction
-   for a validated one.
-*/
-
-function myStudentId() {
-  /* The student's own record id. The API maps users.id -> students.user_id; the
-     servlet enforces self-scope, so passing the user id here is safe: a wrong id
-     simply returns no insight rather than another student's data. */
-  return currentUser.studentId || currentUser.userId || currentUser.id;
-}
-
-function aiRiskBadge(score) {
-  const s = Number(score);
-  if (isNaN(s)) return '<span class="badge badge-navy">—</span>';
-  const cls = s < 60 ? 'badge-danger' : s < 75 ? 'badge-warning' : 'badge-success';
-  return '<span class="badge ' + cls + '">' + s.toFixed(1) + '</span>';
-}
-
-function fmtWhen(ts) {
-  if (!ts) return '—';
-  return String(ts).replace('T', ' ').slice(0, 16);
-}
-
-function renderAi() {
-  const st = DB.aiStatus || {};
-  const isStudent = currentUser.role === 'student';
-
-  document.getElementById('aiSvcStatus').textContent = st.reachable ? 'Online' : 'Offline';
-  document.getElementById('aiSvcStatus').style.color = st.reachable ? 'var(--success)' : 'var(--danger)';
-  const mlp = (st.models && st.models.mlp_performance);
-  document.getElementById('aiModelVer').textContent = mlp ? 'MLP loaded' : 'Not trained';
-
-  if (isStudent) {
-    renderAiStudent();
-    return;
-  }
-
-  /* staff view */
-  const insights = DB.aiInsights || [];
-  const risk = DB.aiRisk || [];
-  document.getElementById('aiPredCount').textContent = insights.length;
-  document.getElementById('aiRiskCount').textContent = risk.length;
-  document.getElementById('aiRiskBadge').textContent = risk.length;
-  document.getElementById('aiHistBadge').textContent = insights.length;
-
-  /* populate the student picker for a fresh prediction */
-  const sel = document.getElementById('aiStudentSelect');
-  sel.innerHTML = (DB.students || []).map(s =>
-    '<option value="' + s.dbId + '">' + s.id + ' — ' + s.fname + ' ' + s.lname + '</option>'
-  ).join('');
-
-  /* populate the scope picker for the enrollment forecast */
-  const scopeSel = document.getElementById('aiForecastScope');
-  if (scopeSel) {
-    scopeSel.innerHTML = '<option value="all">All courses (institution)</option>' +
-      (DB.courses || []).map(c =>
-        '<option value="' + c.dbId + '">' + c.code + ' — ' + c.name + '</option>').join('');
-  }
-
-  /* populate the student picker for course recommendations */
-  const recSel = document.getElementById('aiRecommendStudent');
-  if (recSel) {
-    recSel.innerHTML = (DB.students || []).map(s =>
-      '<option value="' + s.dbId + '">' + s.id + ' — ' + s.fname + ' ' + s.lname + '</option>'
-    ).join('');
-  }
-
-  document.getElementById('aiRiskTbody').innerHTML = risk.length ? risk.map(p => `
-    <tr>
-      <td><strong>${p.studentNo || ''}</strong> ${p.studentName || ''}</td>
-      <td>${aiRiskBadge(p.predictedScore)}</td>
-      <td><span class="badge badge-danger">${(Number(p.riskProbability) * 100).toFixed(1)}%</span></td>
-      <td><span class="badge badge-navy">${p.modelName} ${p.modelVersion}</span></td>
-      <td>${fmtWhen(p.createdAt)}</td>
-    </tr>
-  `).join('') : '<tr><td colspan="5" style="text-align:center;color:var(--gray-400);padding:1.5rem">No at-risk predictions yet — run a prediction above.</td></tr>';
-
-  document.getElementById('aiHistTbody').innerHTML = insights.length ? insights.map(p => `
-    <tr>
-      <td>${p.studentNo || ''} ${p.studentName || ''}</td>
-      <td>${aiRiskBadge(p.predictedScore)}</td>
-      <td>${p.riskProbability != null ? (Number(p.riskProbability) * 100).toFixed(1) + '%' : '—'}</td>
-      <td>${p.atRisk ? '<span class="badge badge-danger">Yes</span>' : '<span class="badge badge-success">No</span>'}</td>
-      <td>${p.predType || 'PERFORMANCE'}</td>
-      <td><span class="badge badge-navy">${p.modelName} ${p.modelVersion}</span></td>
-      <td>${fmtWhen(p.createdAt)}</td>
-    </tr>
-  `).join('') : '<tr><td colspan="7" style="text-align:center;color:var(--gray-400);padding:1.5rem">No predictions stored yet.</td></tr>';
-}
-
-function renderAiStudent() {
-  /* Students get their OWN latest insight only; the servlet enforces the scope. */
-  const box = document.getElementById('aiResult');
-  document.getElementById('aiStudentSelect').parentElement.style.display = 'none';
-  document.getElementById('aiRiskTable').closest('.card').style.display = 'none';
-  document.getElementById('aiHistTable').closest('.card').style.display = 'none';
-  var _fc = document.getElementById('aiForecastCard'); if (_fc) _fc.style.display = 'none';
-  var _rc = document.getElementById('aiRecommendCard'); if (_rc) _rc.style.display = 'none';
-  const m = DB.aiMine;
-  if (!m) {
-    box.innerHTML = '<div class="alert alert-info">No prediction yet. Ask an advisor to run one for your record.</div>';
-    return;
-  }
-  box.innerHTML = aiInsightCard(m);
-}
-
-function aiInsightCard(d) {
-  if (!d) return '';
-  const score = Number(d.predictedScore || 0);
-  const risk = Number(d.riskProbability || 0);
-  const factors = (d.topFactors || []).map(f =>
-    '<li>' + (f.direction === 'down' ? '▼' : '▲') + ' <code>' + f.factor + '</code> (weight ' + f.weight + ')</li>'
-  ).join('');
-  return `
-    <div style="padding:1.25rem;border-radius:var(--radius-lg);background:${d.atRisk ? 'rgba(239,68,68,.06)' : 'rgba(34,197,94,.06)'};border:1px solid ${d.atRisk ? 'rgba(239,68,68,.25)' : 'rgba(34,197,94,.25)'}">
-      <div style="font-size:2rem;font-weight:800;color:${d.atRisk ? 'var(--danger)' : 'var(--success)'}">${score.toFixed(1)}<span style="font-size:1rem;color:var(--gray-400)"> / 100 predicted</span></div>
-      <div style="margin-top:.35rem"><span class="badge ${d.atRisk ? 'badge-danger' : 'badge-success'}">${d.atRisk ? 'AT RISK' : 'ON TRACK'}</span>
-        <span class="badge badge-navy" style="margin-left:.4rem">risk ${(risk * 100).toFixed(1)}%</span></div>
-      ${factors ? '<div style="margin-top:.9rem"><strong>Key factors</strong><ul style="margin:.4rem 0 0 1.2rem">' + factors + '</ul></div>' : ''}
-      <div style="margin-top:.9rem;font-size:.85rem;color:var(--gray-600)">${d.advice || ''}</div>
-      <div style="margin-top:.6rem;font-size:.72rem;color:var(--gray-400)">
-        Model ${d.modelName || 'mlp_performance'} v${d.modelVersion || '?'} · trained on ${d.trainedOn || 'synthetic'} · indicative only</div>
-    </div>
-  `;
-}
-
-async function runAiPrediction() {
-  const sel = document.getElementById('aiStudentSelect');
-  const id = sel && sel.value;
-  if (!id) { showToast('Select a student first.', 'warning'); return; }
-  const box = document.getElementById('aiResult');
-  box.innerHTML = '<div style="color:var(--gray-400)">Running prediction…</div>';
-  const r = await apiFetch('/ai/predict/' + id, { method: 'POST', body: '{}' });
-  if (r.ok && r.body && r.body.data) {
-    box.innerHTML = aiInsightCard(r.body.data);
-    showToast('Prediction complete.', 'success');
-    /* refresh the history + queue so the new row appears */
-    await loadView('ai'); renderAi();
-  } else {
-    const msg = (r.body && r.body.message) || 'Prediction failed.';
-    box.innerHTML = '<div class="alert alert-warning">' + msg + '</div>';
-    showToast(msg, 'error');
-  }
-}
-
-/* ─── ENROLLMENT FORECAST (LSTM) ────────────────────────────────── */
-function fmtSeries(xs) {
-  return (xs || []).map(v => Number(v).toFixed(1)).join(' → ');
-}
-
-async function runAiForecast() {
-  const scope = document.getElementById('aiForecastScope').value || 'all';
-  const steps = document.getElementById('aiForecastSteps').value || 3;
-  const box = document.getElementById('aiForecastResult');
-  box.innerHTML = '<div style="color:var(--gray-400)">Forecasting…</div>';
-  const r = await apiFetch('/ai/forecast/' + scope + '?steps=' + steps);
-  if (!(r.ok && r.body && r.body.data)) {
-    const msg = (r.body && r.body.message) || 'Forecast failed.';
-    box.innerHTML = '<div class="alert alert-warning">' + msg + '</div>';
-    showToast(msg, 'error');
-    return;
-  }
-  const d = r.body.data;
-  const trendCls = d.trend === 'rising' ? 'badge-success' : d.trend === 'falling' ? 'badge-danger' : 'badge-navy';
-  const arrow = d.trend === 'rising' ? '↗' : d.trend === 'falling' ? '↘' : '→';
-  box.innerHTML = `
-    <div style="padding:1.1rem;border-radius:var(--radius-lg);background:rgba(46,125,138,.06);border:1px solid rgba(46,125,138,.2)">
-      <div><strong>${d.label || 'enrollment'}</strong>
-        <span class="badge ${trendCls}" style="margin-left:.4rem">${arrow} ${d.trend || 'flat'}</span></div>
-      <div style="margin-top:.6rem;font-size:.85rem;color:var(--gray-600)">History: ${fmtSeries(d.history)}</div>
-      <div style="margin-top:.35rem;font-size:1.05rem;color:var(--gray-800)"><strong>Forecast:</strong> ${fmtSeries(d.forecast)}</div>
-      <div style="margin-top:.6rem;font-size:.72rem;color:var(--gray-400)">
-        Model ${d.modelName || 'lstm_enrollment'} v${d.modelVersion || '?'} · indicative only</div>
-    </div>`;
-  showToast('Forecast complete.', 'success');
-}
-
-/* ─── COURSE RECOMMENDATIONS (graph) ───────────────────────────── */
-async function runAiRecommend() {
-  const id = document.getElementById('aiRecommendStudent').value;
-  if (!id) { showToast('Select a student first.', 'warning'); return; }
-  const box = document.getElementById('aiRecommendResult');
-  box.innerHTML = '<div style="color:var(--gray-400)">Building recommendations…</div>';
-  const r = await apiFetch('/ai/recommend/' + id + '?top_k=5');
-  if (!(r.ok && r.body && r.body.data)) {
-    const msg = (r.body && r.body.message) || 'Recommendation failed.';
-    box.innerHTML = '<div class="alert alert-warning">' + msg + '</div>';
-    showToast(msg, 'error');
-    return;
-  }
-  const d = r.body.data;
-  const recs = d.recommendations || [];
-  box.innerHTML = recs.length ? recs.map(c => `
-    <div style="padding:.8rem 1rem;border:1px solid var(--gray-200);border-radius:var(--radius);margin-bottom:.5rem">
-      <div style="display:flex;justify-content:space-between;align-items:center">
-        <strong>${c.code} — ${c.name}</strong>
-        <span class="badge badge-navy">score ${Number(c.score).toFixed(2)}</span></div>
-      ${(c.reasons && c.reasons.length) ? '<div style="font-size:.8rem;color:var(--gray-600);margin-top:.3rem">• ' + c.reasons.join('<br>• ') + '</div>' : ''}
-    </div>`
-  ).join('') + `<div style="font-size:.72rem;color:var(--gray-400);margin-top:.4rem">Model ${d.modelName || 'graph_course_recommender'} v${d.modelVersion || '?'} · suggest only, check prerequisites with an advisor</div>`
-    : '<div class="alert alert-info">No eligible courses to recommend (all taken or no prerequisites satisfied).</div>';
-  showToast('Recommendations ready.', 'success');
-}
 
 function showToast(msg, type = 'info') {
   const icons = { success:'✅', error:'❌', info:'ℹ️', warning:'⚠️' };
