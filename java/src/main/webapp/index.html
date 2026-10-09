@@ -1290,6 +1290,133 @@ tbody td { padding: .7rem 1rem; color: var(--gray-800); vertical-align: middle; 
   </div>
 </div>
 
+<div class="modal-overlay" id="modalStudentEdit">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title" id="es_title">✏️ Edit Student</span>
+      <button class="modal-close" onclick="closeModal('modalStudentEdit')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group-app"><label>First Name *</label><input class="form-control-app" id="es_fname"></div>
+        <div class="form-group-app"><label>Last Name *</label><input class="form-control-app" id="es_lname"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group-app"><label>Student ID *</label><input class="form-control-app" id="es_sid"></div>
+        <div class="form-group-app"><label>Status</label>
+          <select class="form-control-app" id="es_status"><option>Active</option><option>Inactive</option><option>Suspended</option><option>Graduated</option></select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group-app"><label>Department</label>
+          <select class="form-control-app" id="es_dept">
+            <option>Computer Engineering</option><option>Software Engineering</option><option>Intelligent Science</option>
+            <option>Electronic Engineering</option><option>Business School</option><option>Network Security</option>
+          </select>
+        </div>
+        <div class="form-group-app"><label>Program</label><input class="form-control-app" id="es_prog"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group-app"><label>Year of Study</label>
+          <select class="form-control-app" id="es_year"><option>Year 1</option><option>Year 2</option><option>Year 3</option><option>Year 4</option></select>
+        </div>
+        <div class="form-group-app"><label>Phone</label><input class="form-control-app" id="es_phone"></div>
+      </div>
+      <div class="form-group-app"><label>Email Address</label><input class="form-control-app" id="es_email" type="email"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modalStudentEdit')">Cancel</button>
+      <button class="btn btn-gold" onclick="saveStudentEdit()">Save Changes</button>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Course -->
+<div class="modal-overlay" id="modalCourseEdit">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title" id="ec_title">✏️ Edit Course</span>
+      <button class="modal-close" onclick="closeModal('modalCourseEdit')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group-app"><label>Course Code *</label><input class="form-control-app" id="ec_code"></div>
+        <div class="form-group-app"><label>Credits</label><input class="form-control-app" id="ec_credits" type="number" min="1" max="6"></div>
+      </div>
+      <div class="form-group-app"><label>Course Name *</label><input class="form-control-app" id="ec_name"></div>
+      <div class="form-row">
+        <div class="form-group-app"><label>Max Enrollment</label><input class="form-control-app" id="ec_max" type="number" min="1"></div>
+        <div class="form-group-app"><label>Semester</label>
+          <select class="form-control-app" id="ec_sem"><option>Fall 2026</option><option>Spring 2026</option><option>Fall 2025</option></select>
+        </div>
+      </div>
+      <div class="form-group-app"><label>Description</label><input class="form-control-app" id="ec_desc"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modalCourseEdit')">Cancel</button>
+      <button class="btn btn-gold" onclick="saveCourseEdit()">Save Changes</button>
+    </div>
+  </div>
+</div>
+
+<!-- Edit User -->
+<div class="modal-overlay" id="modalUserEdit">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title" id="eu_title">✏️ Edit User</span>
+      <button class="modal-close" onclick="closeModal('modalUserEdit')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group-app"><label>Username</label><input class="form-control-app" id="eu_username" disabled></div>
+        <div class="form-group-app"><label>Full Name</label><input class="form-control-app" id="eu_name"></div>
+      </div>
+      <div class="form-group-app"><label>Email</label><input class="form-control-app" id="eu_email" type="email"></div>
+      <div class="form-row">
+        <div class="form-group-app"><label>Role</label>
+          <select class="form-control-app" id="eu_role">
+            <option value="admin">Admin</option><option value="registrar">Registrar</option>
+            <option value="lecturer">Lecturer</option><option value="finance">Finance</option><option value="student">Student</option>
+          </select>
+        </div>
+        <div class="form-group-app"><label>Status</label>
+          <select class="form-control-app" id="eu_status"><option value="active">Active</option><option value="inactive">Inactive</option></select>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modalUserEdit')">Cancel</button>
+      <button class="btn btn-gold" onclick="saveUserEdit()">Save Changes</button>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Grade -->
+<div class="modal-overlay" id="modalGradeEdit">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title" id="eg_title">✏️ Edit Grade</span>
+      <button class="modal-close" onclick="closeModal('modalGradeEdit')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group-app"><label>Student</label><input class="form-control-app" id="eg_student" disabled></div>
+        <div class="form-group-app"><label>Course</label><input class="form-control-app" id="eg_course" disabled></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group-app"><label>Score (0–100) *</label><input class="form-control-app" id="eg_score" type="number" min="0" max="100"></div>
+        <div class="form-group-app"><label>Semester</label>
+          <select class="form-control-app" id="eg_sem"><option>Fall 2026</option><option>Spring 2026</option><option>Fall 2025</option></select>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modalGradeEdit')">Cancel</button>
+      <button class="btn btn-gold" onclick="saveGradeEdit()">Save Changes</button>
+    </div>
+  </div>
+</div>
+
 <!-- Add Course -->
 <div class="modal-overlay" id="modalCourse">
   <div class="modal">
@@ -2247,7 +2374,7 @@ function renderStudents() {
       <td><span class="badge ${s.status==='Active'?'badge-success':'badge-danger'}">${s.status}</span></td>
       <td>
         ${!isReadOnly ? `
-        <button class="btn btn-outline btn-sm" onclick="showToast('Edit feature in Java backend','info')">✏️</button>
+        <button class="btn btn-outline btn-sm" onclick="openStudentEdit(${i})">✏️</button>
         <button class="btn btn-danger btn-sm" onclick="deleteStudent(${i})">🗑</button>
         ` : '<span class="badge badge-navy">View Only</span>'}
       </td>
@@ -2264,6 +2391,144 @@ async function deleteStudent(i) {
     await loadView('students'); renderStudents();
   } else {
     showToast((r.body && r.body.message) || 'Delete failed', 'error');
+  }
+}
+
+/* ─── EDIT (real, PUT-backed) ─── */
+let editing = { student:null, course:null, user:null, grade:null };
+
+function openStudentEdit(idx) {
+  const s = DB.students[idx]; if (!s) return;
+  editing.student = s;
+  document.getElementById('es_title').textContent = '✏️ Edit Student — ' + s.studentId;
+  document.getElementById('es_fname').value = s.firstName || '';
+  document.getElementById('es_lname').value = s.lastName || '';
+  document.getElementById('es_sid').value = s.studentId || '';
+  document.getElementById('es_email').value = s.email || '';
+  document.getElementById('es_phone').value = s.phone || '';
+  document.getElementById('es_dept').value = s.departmentName || 'Computer Engineering';
+  document.getElementById('es_prog').value = s.programName || '';
+  document.getElementById('es_year').value = 'Year ' + (s.yearOfStudy || 1);
+  document.getElementById('es_status').value = (s.status || 'Active');
+  openModal('modalStudentEdit');
+}
+
+async function saveStudentEdit() {
+  const s = editing.student; if (!s) return;
+  const fname = document.getElementById('es_fname').value.trim();
+  const lname = document.getElementById('es_lname').value.trim();
+  const sid   = document.getElementById('es_sid').value.trim();
+  if (!fname || !lname || !sid) { showToast('Please fill required fields', 'error'); return; }
+  const payload = {
+    studentId: sid, firstName: fname, lastName: lname,
+    email: document.getElementById('es_email').value.trim(),
+    phone: document.getElementById('es_phone').value,
+    departmentId: s.departmentId || 1, programId: s.programId || 1,
+    yearOfStudy: parseInt((document.getElementById('es_year').value || '1').replace(/\D/g,''), 10) || 1,
+    status: document.getElementById('es_status').value
+  };
+  const r = await apiFetch('/students/' + s.id, { method: 'PUT', body: JSON.stringify(payload) });
+  if (r.ok) {
+    closeModal('modalStudentEdit');
+    showToast('Student updated', 'success');
+    await loadView('students'); renderStudents();
+  } else {
+    showToast((r.body && r.body.message) || 'Update failed', 'error');
+  }
+}
+
+function openCourseEdit(idx) {
+  const c = DB.courses[idx]; if (!c) return;
+  editing.course = c;
+  document.getElementById('ec_title').textContent = '✏️ Edit Course — ' + c.code;
+  document.getElementById('ec_code').value = c.code || '';
+  document.getElementById('ec_name').value = c.name || '';
+  document.getElementById('ec_credits').value = c.credits || 3;
+  document.getElementById('ec_max').value = c.max || c.maxEnrollment || 40;
+  document.getElementById('ec_sem').value = c.semester || 'Fall 2026';
+  document.getElementById('ec_desc').value = c.description || '';
+  openModal('modalCourseEdit');
+}
+
+async function saveCourseEdit() {
+  const c = editing.course; if (!c) return;
+  const code = document.getElementById('ec_code').value.trim();
+  const name = document.getElementById('ec_name').value.trim();
+  if (!code || !name) { showToast('Please fill required fields', 'error'); return; }
+  const payload = {
+    courseCode: code, courseName: name,
+    credits: parseInt(document.getElementById('ec_credits').value, 10) || 3,
+    maxEnrollment: parseInt(document.getElementById('ec_max').value, 10) || 40,
+    semester: document.getElementById('ec_sem').value,
+    description: document.getElementById('ec_desc').value,
+    departmentId: c.departmentId || 1, instructorId: c.instructorId || null
+  };
+  const r = await apiFetch('/courses/' + c.id, { method: 'PUT', body: JSON.stringify(payload) });
+  if (r.ok) {
+    closeModal('modalCourseEdit');
+    showToast('Course updated', 'success');
+    await loadView('courses'); renderCourses();
+  } else {
+    showToast((r.body && r.body.message) || 'Update failed', 'error');
+  }
+}
+
+function openUserEdit(idx) {
+  const u = DB.users[idx]; if (!u) return;
+  editing.user = u;
+  document.getElementById('eu_title').textContent = '✏️ Edit User — ' + u.username;
+  document.getElementById('eu_username').value = u.username || '';
+  document.getElementById('eu_name').value = ((u.firstName || '') + ' ' + (u.lastName || '')).trim();
+  document.getElementById('eu_email').value = u.email || '';
+  document.getElementById('eu_role').value = u.roleName || u.role || 'student';
+  document.getElementById('eu_status').value = u.status || 'active';
+  openModal('modalUserEdit');
+}
+
+async function saveUserEdit() {
+  const u = editing.user; if (!u) return;
+  const fullName = document.getElementById('eu_name').value.trim();
+  const parts = fullName.split(/\s+/);
+  const payload = {
+    firstName: parts[0] || '',
+    lastName: parts.slice(1).join(' ') || '',
+    email: document.getElementById('eu_email').value.trim(),
+    role: document.getElementById('eu_role').value,
+    status: document.getElementById('eu_status').value
+  };
+  const r = await apiFetch('/users/' + u.id, { method: 'PUT', body: JSON.stringify(payload) });
+  if (r.ok) {
+    closeModal('modalUserEdit');
+    showToast('User updated', 'success');
+    await loadView('users'); renderUsers();
+  } else {
+    showToast((r.body && r.body.message) || 'Update failed', 'error');
+  }
+}
+
+function openGradeEdit(idx) {
+  const g = DB.grades[idx]; if (!g) return;
+  editing.grade = g;
+  document.getElementById('eg_title').textContent = '✏️ Edit Grade — ' + g.studentNo + ' / ' + g.courseCode;
+  document.getElementById('eg_student').value = g.studentName || g.studentNo || '';
+  document.getElementById('eg_course').value = g.courseCode || '';
+  document.getElementById('eg_score').value = g.score;
+  document.getElementById('eg_sem').value = g.semester || 'Fall 2026';
+  openModal('modalGradeEdit');
+}
+
+async function saveGradeEdit() {
+  const g = editing.grade; if (!g) return;
+  const score = parseFloat(document.getElementById('eg_score').value);
+  if (isNaN(score) || score < 0 || score > 100) { showToast('Score must be 0–100', 'error'); return; }
+  const payload = { score: score, semester: document.getElementById('eg_sem').value };
+  const r = await apiFetch('/grades/' + g.id, { method: 'PUT', body: JSON.stringify(payload) });
+  if (r.ok) {
+    closeModal('modalGradeEdit');
+    showToast('Grade updated', 'success');
+    await loadView('grades'); renderGrades();
+  } else {
+    showToast((r.body && r.body.message) || 'Update failed', 'error');
   }
 }
 
@@ -2315,7 +2580,7 @@ function renderCourses() {
       </td>
       <td><span class="badge ${c.status==='Full'?'badge-danger':c.status==='Active'?'badge-success':'badge-warning'}">${c.status}</span></td>
       <td>
-        ${canEdit ? `<button class="btn btn-outline btn-sm" onclick="showToast('Edit in Java backend','info')">✏️</button>
+        ${canEdit ? `<button class="btn btn-outline btn-sm" onclick="openCourseEdit(${i})">✏️</button>
         <button class="btn btn-danger btn-sm" onclick="deleteCourse(${i})">🗑</button>` : '<span class="badge badge-navy">View Only</span>'}
       </td>
     </tr>
@@ -2439,7 +2704,7 @@ function renderGrades() {
       </td>
       <td>${g.points}</td>
       <td>${g.semester}</td>
-      <td>${canEdit ? `<button class="btn btn-outline btn-sm" onclick="showToast('Edit grade in Java backend','info')">✏️</button>` : '—'}</td>
+      <td>${canEdit ? `<button class="btn btn-outline btn-sm" onclick="openGradeEdit(${i})">✏️</button>` : '—'}</td>
     </tr>
   `).join('');
 
@@ -2578,7 +2843,7 @@ function renderUsers() {
       <td><span class="badge ${u.status==='active'?'badge-success':'badge-danger'}">${u.status}</span></td>
       <td style="font-size:.75rem;color:var(--gray-600)">${u.lastLogin}</td>
       <td>
-        <button class="btn btn-outline btn-sm" onclick="showToast('Edit in Java backend','info')">✏️</button>
+        <button class="btn btn-outline btn-sm" onclick="openUserEdit(${i})">✏️</button>
         <button class="btn btn-danger btn-sm" onclick="deleteUser(${i})">🗑</button>
       </td>
     </tr>
