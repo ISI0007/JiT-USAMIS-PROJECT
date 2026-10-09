@@ -52,11 +52,18 @@ public class StudentServlet extends HttpServlet {
         if (pathInfo != null && pathInfo.length() > 1) {
             int id = ValidationUtil.parseInt(pathInfo.substring(1), -1);
             if (id < 0) { JsonUtil.badRequest(resp, "Invalid student ID"); return; }
+
+            // Staff without roster permission (lecturer/finance) may only read a
+            // student they are entitled to; students only themselves.
+            if (!canListRoster(user) && !"student".equalsIgnoreCase(user.roleName)) {
+                JsonUtil.forbidden(resp); return;
+            }
+
             Optional<Student> s = studentDAO.findById(id);
             if (s.isEmpty()) { JsonUtil.notFound(resp, "Student"); return; }
 
             // Students can only view their own record
-            if ("student".equals(user.roleName) && s.get().userId != null
+            if ("student".equalsIgnoreCase(user.roleName) && s.get().userId != null
                     && !s.get().userId.equals(user.id)) {
                 JsonUtil.forbidden(resp); return;
             }
@@ -77,6 +84,9 @@ public class StudentServlet extends HttpServlet {
             }
             return;
         }
+
+        // Staff without roster permission see nothing (403), not the whole list.
+        if (!canListRoster(user)) { JsonUtil.forbidden(resp); return; }
 
         String search = req.getParameter("search");
         String deptParam = req.getParameter("dept");
@@ -229,6 +239,17 @@ public class StudentServlet extends HttpServlet {
     }
 
     // ─── HELPERS ────────────────────────────────────────────
+    /**
+     * Only roles that legitimately manage the student roster may read it in
+     * bulk or read an arbitrary student by id. Lecturers and finance have no
+     * student-management permission, so they must not receive the roster.
+     */
+    private boolean canListRoster(UserDTO user) {
+        if (user == null || user.roleName == null) return false;
+        String r = user.roleName.toLowerCase();
+        return "admin".equals(r) || "registrar".equals(r);
+    }
+
     private boolean hasPermission(UserDTO user, String perm) {
         // Cached in session for performance — checked against DB on first load
         // For this implementation: role-based inline check

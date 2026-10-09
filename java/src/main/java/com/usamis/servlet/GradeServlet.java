@@ -49,9 +49,14 @@ public final class GradeServlet extends HttpServlet {
         if (studentParam != null) {
             int sid = ValidationUtil.parseInt(studentParam, -1);
             JsonUtil.success(resp, dao.findGradesByStudent(sid));
-        } else {
-            JsonUtil.success(resp, dao.findAllGrades());
+            return;
         }
+
+        // Full grade list: only roles that legitimately view institution-wide
+        // grades (admin, registrar, lecturer). Finance has no grade permission
+        // and must not receive the roster of every student's marks.
+        if (!canViewAllGrades(user)) { JsonUtil.forbidden(resp); return; }
+        JsonUtil.success(resp, dao.findAllGrades());
     }
 
     @Override protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
@@ -123,6 +128,10 @@ public final class GradeServlet extends HttpServlet {
 
     private boolean canEnterGrades(UserDTO u) {
         return "admin".equals(u.roleName) || "lecturer".equals(u.roleName);
+    }
+    private boolean canViewAllGrades(UserDTO u) {
+        String r = u.roleName == null ? "" : u.roleName.toLowerCase();
+        return "admin".equals(r) || "registrar".equals(r) || "lecturer".equals(r);
     }
     private String getIp(HttpServletRequest r) {
         String xff = r.getHeader("X-Forwarded-For"); return xff != null ? xff.split(",")[0].trim() : r.getRemoteAddr();
