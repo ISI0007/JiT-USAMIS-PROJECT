@@ -90,15 +90,17 @@ public class StudentServlet extends HttpServlet {
 
         String search = req.getParameter("search");
         String deptParam = req.getParameter("dept");
+        boolean includeInactive = "true".equalsIgnoreCase(req.getParameter("includeInactive"));
 
         List<Student> students;
         if (search != null && !search.isBlank()) {
             students = studentDAO.search(ValidationUtil.sanitize(search));
         } else if (deptParam != null) {
             int deptId = ValidationUtil.parseInt(deptParam, -1);
-            students = deptId > 0 ? studentDAO.findByDepartment(deptId) : studentDAO.findAll();
+            students = deptId > 0 ? studentDAO.findByDepartment(deptId)
+                                  : studentDAO.findAll(includeInactive);
         } else {
-            students = studentDAO.findAll();
+            students = studentDAO.findAll(includeInactive);
         }
 
         // Staff list — only roles with a legitimate need may see the roster.

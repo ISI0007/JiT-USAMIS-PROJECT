@@ -25,7 +25,15 @@ public class StudentDAO {
 
     // ─── READ ─────────────────────────────────────────────────
     public List<Student> findAll() {
-        String sql = BASE_SELECT + "GROUP BY s.id, d.name, p.name ORDER BY s.student_id";
+        // Default view excludes deactivated records so soft-deleted/test rows do
+        // not clutter the live roster. Pass includeInactive=true to see all.
+        return findAll(false);
+    }
+
+    public List<Student> findAll(boolean includeInactive) {
+        String sql = BASE_SELECT +
+            (includeInactive ? "" : "WHERE s.status <> 'Inactive' ") +
+            "GROUP BY s.id, d.name, p.name ORDER BY s.student_id";
         return executeQuery(sql);
     }
 

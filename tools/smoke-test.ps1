@@ -144,6 +144,17 @@ Check "duplicate -> 409" ($r.code -eq 409) ("HTTP " + $r.code)
 $r = Req $sessions["admin001"] "DELETE" ("$Api/students/" + $newId) $null
 Check "DELETE (soft) student" ($r.code -eq 200) ("HTTP " + $r.code)
 
+# Hard-purge the test row so this script does NOT leave junk in the real DB.
+# The API only soft-deletes; we clean the physical row directly via the DB.
+$purge = 'import com.usamis.util.DatabaseConnection; import java.sql.*; public class SmokePurge { public static void main(String[] a) throws Exception { try (Connection c = DatabaseConnection.getConnection(); PreparedStatement ps = c.prepareStatement("DELETE FROM students WHERE id = ?")) { ps.setInt(1, Integer.parseInt(a[0])); int n = ps.executeUpdate(); System.out.println("purged=" + n); } } }'
+Set-Content -Path "$PSScriptRoot\..\_verify\SmokePurge.java" -Value $purge -Encoding UTF8
+$jars = (Get-ChildItem "$PSScriptRoot\..\java\target\usamis\WEB-INF\lib\*.jar" | ForEach-Object { $_.FullName }) -join ';'
+$m2 = $env:USERPROFILE + "\.m2\repository"
+$cp = "$PSScriptRoot\..\java\target\classes;$PSScriptRoot\..\_verify\classes;$jars"
+& javac -cp $cp -d "$PSScriptRoot\..\_verify\classes" "$PSScriptRoot\..\_verify\SmokePurge.java" 2>$null
+$purgeOut = & java -cp $cp SmokePurge $newId 2>$null
+Check "PURGE test row (no residue)" ($purgeOut -match "purged=1") ("$purgeOut")
+
 # ---- summary ------------------------------------------------------------
 Write-Host ""
 if ($script:fail -eq 0) {
