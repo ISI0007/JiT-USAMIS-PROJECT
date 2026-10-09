@@ -993,6 +993,14 @@ tbody td { padding: .7rem 1rem; color: var(--gray-800); vertical-align: middle; 
               <button class="btn btn-primary btn-sm" style="margin-top:1rem">Generate</button>
             </div>
           </div>
+          <div class="card" style="cursor:pointer" onclick="runReport('revenue-summary')">
+            <div class="card-body" style="text-align:center;padding:2rem 1rem">
+              <div style="font-size:2rem;margin-bottom:.75rem">💰</div>
+              <div style="font-weight:700;color:var(--navy);margin-bottom:.4rem">Revenue Summary</div>
+              <div style="font-size:.78rem;color:var(--gray-600)">Billed vs collected by fee type</div>
+              <button class="btn btn-primary btn-sm" style="margin-top:1rem">Generate</button>
+            </div>
+          </div>
           <div class="card" style="cursor:pointer" onclick="runReport('course-pass-rate')">
             <div class="card-body" style="text-align:center;padding:2rem 1rem">
               <div style="font-size:2rem;margin-bottom:.75rem">📈</div>
@@ -3022,19 +3030,21 @@ function logAudit(action, module, desc) {
 
 /* ─── REPORTS (real, data-driven) ─── */
 function renderReports() {
-  // Hide report cards a role has no permission for, so nobody clicks into a 403.
-  // fee-defaulters needs fee permission; everything else needs roster/grades.
+  // Gate each report by whether the role can actually LOAD its data source,
+  // so nobody clicks a card that would 403.
   const role = currentUser.role;
-  const canFees = ['admin', 'finance'].includes(role);
-  const canRoster = ['admin', 'registrar'].includes(role);
-  const canGrades = ['admin', 'registrar', 'lecturer'].includes(role);
+  const canFees    = ['admin', 'finance'].includes(role);
+  const canRoster  = ['admin', 'registrar'].includes(role);
+  const canGrades  = ['admin', 'registrar', 'lecturer'].includes(role);
+  const canCourses = ['admin', 'registrar', 'lecturer', 'finance'].includes(role);
   const gating = {
-    'fee-defaulters':    canFees,
-    'students-per-dept': canRoster,
-    'low-gpa':           canRoster,
-    'gpa-transcript':    canRoster,
-    'enrollment-summary':canRoster || canGrades,
-    'course-pass-rate':  canGrades,
+    'fee-defaulters':     canFees,
+    'revenue-summary':    canFees,
+    'students-per-dept':  canRoster,
+    'low-gpa':            canRoster,
+    'gpa-transcript':     canRoster,
+    'enrollment-summary': canRoster || canCourses,
+    'course-pass-rate':   canGrades,
   };
   document.querySelectorAll('#sec-reports .card[onclick]').forEach(card => {
     const m = (card.getAttribute('onclick') || '').match(/runReport\('([^']+)'\)/);
@@ -3144,6 +3154,33 @@ async function runReport(kind) {
       reportShell('GPA Transcripts',
         list.length + ' students',
         reportTable(['Student No','Name','Program','Year','GPA','Status'], rows));
+    }
+    else if (kind === 'revenue-summary') {
+      const r = await apiFetch('/fees');
+      const list = (r.ok && r.body && r.body.data) ? r.body.data : [];
+      let billed = 0, paid = 0;
+      const byType = {};
+      list.forEach(f => {
+        const t = f.feeType || 'Other';
+        byType[t] = byType[t] || { billed:0, paid:0, n:0 };
+        billed += Number(f.totalAmount) || 0;
+        paid   += Number(f.paidAmount) || 0;
+        byType[t].billed += Number(f.totalAmount) || 0;
+        byType[t].paid   += Number(f.paidAmount) || 0;
+        byType[t].n++;
+      });
+      const rows = Object.entries(byType).sort((a,b) => b[1].billed - a[1].billed)
+        .map(([t,v]) => [t, v.n, fmtMoney(v.billed), fmtMoney(v.paid), fmtMoney(v.billed - v.paid)]);
+      const kpis =
+        '<div style="margin:10px 0 16px">' +
+          '<span class="kpi"><b>' + fmtMoney(billed) + '</b>Billed</span>' +
+          '<span class="kpi"><b>' + fmtMoney(paid) + '</b>Collected</span>' +
+          '<span class="kpi"><b>' + fmtMoney(billed - paid) + '</b>Outstanding</span>' +
+          '<span class="kpi"><b>' + (billed ? ((paid/billed)*100).toFixed(1) : '0.0') + '%</b>Collection Rate</span>' +
+        '</div>';
+      reportShell('Revenue Summary',
+        list.length + ' fee records',
+        kpis + reportTable(['Fee Type','Records','Billed','Collected','Outstanding'], rows));
     }
     else if (kind === 'enrollment-summary') {
       const r = await apiFetch('/enrollments');
