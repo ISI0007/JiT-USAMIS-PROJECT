@@ -873,7 +873,7 @@ tbody td { padding: .7rem 1rem; color: var(--gray-800); vertical-align: middle; 
         <div class="action-bar">
           <input class="search-input" placeholder="🔍 Search grades..." oninput="filterTable(this,'gradesTable')">
           <button class="btn btn-gold" onclick="openModal('modalGrade')">+ Enter Grade</button>
-          <button class="btn btn-outline">📄 Transcript</button>
+          <button class="btn btn-outline" onclick="openTranscriptPicker()">📄 Transcript</button>
         </div>
         <div class="two-col">
           <div class="card">
@@ -1413,6 +1413,29 @@ tbody td { padding: .7rem 1rem; color: var(--gray-800); vertical-align: middle; 
     <div class="modal-footer">
       <button class="btn btn-outline" onclick="closeModal('modalGradeEdit')">Cancel</button>
       <button class="btn btn-gold" onclick="saveGradeEdit()">Save Changes</button>
+    </div>
+  </div>
+</div>
+
+<!-- Transcript Picker -->
+<div class="modal-overlay" id="modalTranscript">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">📄 Generate Transcript</span>
+      <button class="modal-close" onclick="closeModal('modalTranscript')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group-app">
+        <label>Student</label>
+        <select class="form-control-app" id="tr_student"></select>
+      </div>
+      <p style="font-size:.78rem;color:var(--gray-600);margin-top:.5rem">
+        Produces a printable academic record (courses, grades, GPA).
+      </p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modalTranscript')">Cancel</button>
+      <button class="btn btn-gold" onclick="generateTranscript()">Generate</button>
     </div>
   </div>
 </div>
@@ -2530,6 +2553,65 @@ async function saveGradeEdit() {
   } else {
     showToast((r.body && r.body.message) || 'Update failed', 'error');
   }
+}
+
+/* ─── TRANSCRIPT (real, per-student, printable) ─── */
+function openTranscriptPicker() {
+  const sel = document.getElementById('tr_student');
+  if (!DB.students || !DB.students.length) { showToast('No students loaded', 'error'); return; }
+  sel.innerHTML = DB.students.map((s, i) =>
+    `<option value="${i}">${s.studentId} — ${s.firstName} ${s.lastName}</option>`).join('');
+  openModal('modalTranscript');
+}
+
+async function generateTranscript() {
+  const idx = parseInt(document.getElementById('tr_student').value, 10);
+  const s = DB.students[idx];
+  if (!s) { showToast('Pick a student', 'error'); return; }
+  closeModal('modalTranscript');
+  showToast('Building transcript…', 'info');
+
+  let grades = [];
+  try {
+    const r = await apiFetch('/grades?student=' + s.id);
+    if (r.ok && r.body && Array.isArray(r.body.data)) grades = r.body.data;
+  } catch (e) { /* fall through to empty */ }
+
+  // Fallback: filter the already-loaded grade list by this student's number.
+  if (!grades.length && DB.grades) {
+    grades = DB.grades.filter(g => g.studentId === s.studentId || g.studentNo === s.studentId);
+  }
+
+  const name = (s.firstName || '') + ' ' + (s.lastName || '');
+  const rows = grades.map(g => [g.courseCode || '', g.courseName || '',
+    g.semester || '—', g.score != null ? Number(g.score).toFixed(1) : '—',
+    g.letterGrade || g.letter || '—',
+    g.gpaPoints != null ? Number(g.gpaPoints).toFixed(2) : '—']);
+
+  // GPA: use stored gpa if present, else compute from gpaPoints.
+  let gpa = s.gpa;
+  if ((gpa == null || isNaN(gpa)) && grades.length) {
+    const pts = grades.map(g => Number(g.gpaPoints)).filter(n => !isNaN(n));
+    if (pts.length) gpa = pts.reduce((a, b) => a + b, 0) / pts.length;
+  }
+
+  const header =
+    '<div class="muted">Official academic record.</div>' +
+    '<div style="margin:12px 0;padding:12px;border:1px solid #cbd5e1;border-radius:6px">' +
+      '<strong style="font-size:15px">' + name + '</strong><br>' +
+      'Student No: ' + s.studentId + '<br>' +
+      'Department: ' + (s.departmentName || '—') + '<br>' +
+      'Program: ' + (s.programName || '—') + ' · Year ' + (s.yearOfStudy || 1) + '<br>' +
+      'Status: ' + (s.status || 'Active') + ' · Cumulative GPA: <strong>' +
+      (gpa != null && !isNaN(gpa) ? Number(gpa).toFixed(2) : '—') + '</strong>' +
+    '</div>';
+
+  const body = grades.length
+    ? reportTable(['Course', 'Title', 'Semester', 'Score', 'Grade', 'Points'], rows)
+    : '<p>No grades recorded for this student yet.</p>';
+
+  reportShell('Academic Transcript — ' + s.studentId, name, header + body);
+  showToast('Transcript ready', 'success');
 }
 
 async function addStudent() {
