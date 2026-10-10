@@ -3,7 +3,7 @@
 **System:** University Student Academic Management Information System (USAMIS)
 **Institution:** Jinling Institute of Technology (金陵科技学院), Nanjing, China
 **Course:** Management Information Systems / Database Systems
-**Prepared by:** [Your Name] · Student ID: [Your Student ID]
+**Prepared by:** Yaseen Hussain · Student ID: 2422486012
 **Supervisor:** [Course Instructor Name]
 **Department Head:** [Dept. Head Name]
 **Version:** 1.1 (Reconciled with as-built system)
