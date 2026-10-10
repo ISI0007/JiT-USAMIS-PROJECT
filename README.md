@@ -194,6 +194,97 @@ verified run path is local: `http://localhost:8080/usamis/` and
 | Rate limiting        | In-memory counter (use Redis in production)      |
 | Least privilege      | Users get minimum permissions for their role     |
 
+---
+
+## AI Module (decision-support analytics)
+
+A separate **Python FastAPI** micro-service adds deep-learning analytics without
+touching the Java/PostgreSQL stack. The Java backend authenticates the user,
+checks permissions, then calls the AI service over loopback with a shared token.
+The AI service holds **no DB credentials** — features arrive in the request body.
+
+### What it does
+
+| Capability           | Model   | Endpoint (AI service)          | Java endpoint                  |
+|----------------------|---------|--------------------------------|--------------------------------|
+| Performance prediction | MLP   | POST /api/v1/predict/performance | POST /api/ai/predict/{id}     |
+| Enrollment forecasting | LSTM  | POST /api/v1/forecast/enrollment | GET /api/ai/forecast/{id\|all} |
+| Course recommendations | Graph | POST /api/v1/recommend/courses   | GET /api/ai/recommend/{id}    |
+| Service health         | —     | GET  /health                    | GET /api/ai/status            |
+| Prediction history     | —     | —                              | GET /api/ai/insights          |
+| At-risk queue          | —     | —                              | GET /api/ai/insights/at-risk  |
+
+`/api/ai/forecast/{id}` forecasts a course's active-enrollment trend (or the whole
+institution with `all`); it returns `422` when fewer than 4 semesters of history exist,
+which is the honest answer rather than a fabricated curve. `/api/ai/recommend/{id}`
+ranks eligible courses from the live catalog + co-enrollment graph.
+
+### Honesty about accuracy
+
+The bundled models are trained on the deterministic **synthetic** generator
+(`ai-service/ai_service/synthetic.py`) — real accuracy can only be claimed after
+training on real historical records. Every prediction carries `model_version` and
+`trained_on`, and the UI labels predictions as indicative, not authoritative.
+On synthetic data the MLP beats a naive mean baseline but sits close to (slightly
+under) a strong hand-tuned coursework heuristic — an honest, expected result.
+
+### Directory layout
+
+```
+ai-service/                    # Python AI service (independent runtime)
+├── ai_service/                # package: app, mlp, lstm, graph, synthetic, baseline
+├── train_models.py            # trains + persists models, prints honest baselines
+├── tests/                     # pytest suite (14 tests, runs without torch too)
+├── requirements.txt
+├── .env.example               # AI_SERVICE_TOKEN, AI_MODELS_DIR
+└── run-ai-service.cmd         # launcher (uses D:\usamis-ai on this dev box)
+
+java/src/main/java/com/usamis/
+├── ai/                        # AiClient, AiService, AiPredictionDAO
+├── model/AiModels.java        # AI DTOs
+└── servlet/AiServlet.java     # /api/ai/* endpoints + RBAC
+
+java/src/main/resources/ai_migration.sql   # ai_prediction table + VIEW_AI/MANAGE_AI perms
+java/src/main/resources/ai.properties.example
+```
+
+### Setup
+
+```bash
+# 1. AI service (Python 3.11+, install deps, train, run)
+cd ai-service
+py -m venv .venv && .venv\Scripts\activate      # Windows
+pip install -r requirements.txt
+pip install torch --index-url https://download.pytorch.org/whl/cpu
+python train_models.py                           # writes models/*.pt
+set AI_SERVICE_TOKEN=<long random value>
+uvicorn ai_service.app:app --host 127.0.0.1 --port 8099
+
+# 2. Java side
+cp java/src/main/resources/ai.properties.example java/src/main/resources/ai.properties
+#   edit ai.properties: ai.service.token = <same token>
+# 3. DB
+psql -U usamis_user -d usamis -f java/src/main/resources/ai_migration.sql
+```
+
+### Security
+
+- AI service binds loopback, requires `X-AI-Service-Token` (constant-time compare),
+  and fails closed (503) when no token is configured.
+- `AiClient` reads the token from the git-ignored `ai.properties`; never committed.
+- Student names never leave the Java backend; only aggregate features are sent.
+- `/api/ai/*` endpoints enforce RBAC: staff view aggregates, students see only
+  their own record (self-scope enforced server-side).
+
+### Verify
+
+```bash
+cd ai-service && pytest -q                      # 14 tests
+python tools/verify-ai.py                        # end-to-end (needs running services)
+```
+
+---
+
 ## Architecture Decision Records
 
 **ADR-001: Jakarta Servlets over Spring**
