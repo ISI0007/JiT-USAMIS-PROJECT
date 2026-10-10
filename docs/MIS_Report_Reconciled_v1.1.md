@@ -143,8 +143,7 @@ implemented and verified:
 - **Isolation:** FastAPI service on loopback, token-gated (`X-AI-Service-Token`),
   fail-closed (503 if unconfigured). Never exposed on the app port.
 - **Single port:** all AI access is via `/api/ai/*` on 8080. Verified.
-- **Models:** `mlp_performance` (score + risk, threshold 60; R² 0.671, risk recall
-  0.874 on synthetic validation), `lstm_enrollment` (forecast), `graph_course_recommender`.
+- **Models:** `mlp_performance` (score + risk, threshold 60; validation R² **0.7573**, RMSE **6.3194**, risk precision **0.8185** / recall **0.9055** / F1 **0.8598** on synthetic validation), `lstm_enrollment` (forecast, val RMSE 0.2497 scaled), `graph_course_recommender`.
 - **Graceful degradation:** service down → `/api/ai/*` 503; rest of app unaffected.
 - **Honesty:** models are `trained_on: synthetic`; forecast returns 422 (not a
   fabricated number) below 4 semesters of history.

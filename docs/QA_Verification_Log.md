@@ -5,6 +5,7 @@
 **AI service:** `http://127.0.0.1:8099` (loopback-only, reached through Java)
 **Database:** PostgreSQL 17.10, `usamis` @ localhost:5432
 **Method:** every result below was produced by running the command; no figure is asserted from memory.
+**Model revision:** MLP `1.1.0-synth` (retrained with the improved generator, `ai-service/train_models_v2.py`).
 
 ---
 
@@ -98,6 +99,24 @@ the caller's own rows (verified: 2 rows, all `studentId=4`). Confirmed safe.
 | FR-29/30 | Audit log write + paginated query (admin) | ✅ |
 | FR-31..34 | AI status / predict / insights / forecast+recommend | ✅ (verify-ai) |
 
+### 5.1 AI model (retrained, revision 1.1.0-synth)
+
+Retrained via `ai-service/train_models_v2.py` (6 000 rows, improved generator).
+Verified live through the stack: `POST /api/ai/predict/1` → `modelVersion 1.1.0-synth`.
+
+| Metric | v1.0.0 | v1.1.0 (served) |
+|---|---|---|
+| R² (validation) | 0.6709 | **0.7573** |
+| MAE | 5.8126 | **5.0688** |
+| RMSE | 7.1903 | **6.3194** |
+| Risk precision | 0.7741 | **0.8185** |
+| Risk recall | 0.8741 | **0.9055** |
+| Risk F1 | 0.8211 | **0.8598** |
+| LSTM val RMSE (scaled) | 0.24971 | 0.24971 |
+
+Baselines the model must clear (validation): mean R²≈0.00, coursework R²=0.6048
+(F1 0.7521). The MLP beats both on F1; no leakage (R² well under 0.97).
+
 ---
 
 ## 6. Data state at verification
@@ -110,7 +129,7 @@ the caller's own rows (verified: 2 rows, all `studentId=4`). Confirmed safe.
 | grades | 156 |
 | fee_records | 52 |
 | audit_log | 530+ (append-only) |
-| ai_prediction | 3 |
+| ai_prediction | 10 |
 | users | 13 |
 | departments / programs | 8 / 10 |
 | attendance | 0 (schema present; unpopulated — matches MIS report §7.3) |
