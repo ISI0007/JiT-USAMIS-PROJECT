@@ -1,6 +1,17 @@
-# USAMIS -> AI service connection (copy to ai.properties; ai.properties is git-ignored)
-# The AI service must NOT be reachable from the public internet.
+# ============================================================
+# USAMIS Java app — environment template
+# Copy to  java/src/main/resources/ai.properties  (git-ignored)
+# and edit values for your machine. Never commit real secrets.
+# ============================================================
+
+# --- Where the AI service listens (loopback only) ---
 ai.base.url=http://127.0.0.1:8099
-# Must match AI_SERVICE_TOKEN in the ai-service .env
-ai.service.token=change-me-to-a-long-random-value
-ai.timeout.ms=4000
+
+# --- Shared secret sent as  X-AI-Service-Token ---
+# Must match AI_SERVICE_TOKEN exported in the shell that launches uvicorn.
+# If unset/empty the service is fail-closed: all calls are rejected 401.
+ai.service.token=usamis-ai-dev-token-2026
+
+# --- Timeouts (ms) ---
+ai.connect.timeout.ms=2000
+ai.read.timeout.ms=8000

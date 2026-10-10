@@ -1,314 +1,132 @@
 # USAMIS — University Student Academic Management Information System
-**Jinling Institute of Technology (金陵科技学院)**
 
-A full-stack Role-Based Academic MIS built with:
-- **Backend:** Java 17 + Jakarta Servlets + JDBC + PostgreSQL
-- **Frontend:** Pure HTML5 / CSS3 / Vanilla JS (no frameworks)
-- **Security:** BCrypt, RBAC, SQL injection prevention, Audit Log
-- **Build:** Maven + Apache Tomcat 10
-
----
-
-## Project Structure
-
-```
-usamis/
-├── java/
-│   ├── pom.xml
-│   └── src/main/
-│       ├── java/com/usamis/
-│       │   ├── dao/
-│       │   │   ├── UserDAO.java          ← Auth + user CRUD
-│       │   │   ├── StudentDAO.java       ← Student CRUD + search
-│       │   │   └── AcademicDAO.java      ← Course, Enrollment, Grade, Fee, Audit
-│       │   ├── filter/
-│       │   │   └── AuthFilter.java       ← Session auth on /api/*
-│       │   ├── model/
-│       │   │   └── Models.java           ← All domain models + DTOs
-│       │   ├── servlet/
-│       │   │   ├── LoginServlet.java     ← POST /api/auth/login|logout
-│       │   │   ├── StudentServlet.java   ← REST /api/students
-│       │   │   ├── UserServlet.java      ← REST /api/users
-│       │   │   └── AcademicServlets.java ← Course, Enrollment, Grade, Fee, Audit, Dashboard
-│       │   └── util/
-│       │       ├── AppContextListener.java ← DB pool init on startup
-│       │       ├── DatabaseConnection.java ← HikariCP pool singleton
-│       │       ├── JsonUtil.java           ← Gson + response helpers
-│       │       ├── PasswordUtil.java       ← BCrypt hash/verify
-│       │       └── ValidationUtil.java     ← Input sanitization
-│       ├── resources/
-│       │   ├── schema.sql    ← Full PostgreSQL schema
-│       │   ├── seed.sql      ← Sample data
-│       │   ├── db.properties ← DB credentials (gitignore this!)
-│       │   └── logback.xml   ← Logging config
-│       └── webapp/
-│           ├── WEB-INF/web.xml
-│           └── index.html    ← Frontend SPA
-└── .gitignore
-```
+A role-based academic **Management Information System** for Jinling Institute of
+Technology: student records, courses, enrollment, grades, fees, reporting, audit,
+and **AI decision support**. Built as one Java web application on a single public
+port; a Python AI micro-service runs on loopback and is reached only through the
+Java backend.
 
 ---
 
-## REST API Reference
+## Quick start (Windows)
 
-| Method | Endpoint                   | Permission        | Description                     |
-|--------|----------------------------|-------------------|---------------------------------|
-| POST   | /api/auth/login            | Public            | Login — returns session cookie  |
-| POST   | /api/auth/logout           | Any               | Invalidate session              |
-| GET    | /api/auth/me               | Any               | Current logged-in user          |
-| GET    | /api/dashboard             | Any               | Dashboard statistics            |
-| GET    | /api/students              | All (own for stu) | List students                   |
-| GET    | /api/students/{id}         | All               | Get single student              |
-| POST   | /api/students              | Admin, Registrar  | Create student                  |
-| PUT    | /api/students/{id}         | Admin, Registrar  | Update student                  |
-| DELETE | /api/students/{id}         | Admin, Registrar  | Deactivate student              |
-| GET    | /api/students/at-risk      | Admin, Registrar  | GPA < 2.5                       |
-| GET    | /api/courses               | All               | List courses                    |
-| POST   | /api/courses               | Admin, Registrar  | Create course                   |
-| PUT    | /api/courses/{id}          | Admin, Registrar  | Update course                   |
-| DELETE | /api/courses/{id}          | Admin             | Cancel course                   |
-| GET    | /api/enrollments           | All               | List enrollments                |
-| POST   | /api/enrollments           | Admin, Registrar  | Enroll student in course        |
-| DELETE | /api/enrollments/{id}      | Admin, Registrar  | Drop enrollment                 |
-| GET    | /api/grades                | All               | List grades                     |
-| POST   | /api/grades                | Admin, Lecturer   | Enter grade                     |
-| PUT    | /api/grades/{id}           | Admin, Lecturer   | Update grade                    |
-| GET    | /api/fees                  | Admin, Finance    | List fee records                |
-| GET    | /api/fees/defaulters       | Admin, Finance    | Fee defaulters                  |
-| POST   | /api/fees                  | Admin, Finance    | Create fee record               |
-| POST   | /api/fees/{id}/pay         | Admin, Finance    | Record payment                  |
-| GET    | /api/users                 | Admin             | List system users               |
-| POST   | /api/users                 | Admin             | Create user                     |
-| PUT    | /api/users/{id}            | Admin             | Update user status              |
-| DELETE | /api/users/{id}            | Admin             | Deactivate user                 |
-| GET    | /api/audit                 | Admin             | Paginated audit log             |
-| GET    | /api/health                | Public            | Health check                    |
+```
+run.bat          REM start AI service (:8099) + Java app (:8080)
+stop.bat         REM stop both
+```
+
+Then open **http://127.0.0.1:8080/usamis/**.
+
+Demo accounts (course/demo only — change before any real use):
+
+| Role | Username | Password |
+|---|---|---|
+| Admin | `admin001` | `admin123` |
+| Registrar | `reg001` | `reg123` |
+| Lecturer | `lec001` | `lec123` |
+| Finance | `fin001` | `fin123` |
+| Student | `stu001` | `stu123` |
 
 ---
 
-## Setup & Run
+## Architecture
 
-### 1. Prerequisites
-- Java 17+
-- Maven 3.9+
-- PostgreSQL 15+
-- Apache Tomcat 10.x
+- **One public port**: `8080` (Java app, context `/usamis`). All UI and API
+  (including `/api/ai/*`) go through it.
+- **AI micro-service**: `127.0.0.1:8099` (FastAPI, loopback-only). Not exposed.
+  Uses a shared token (`X-AI-Service-Token`); **fail-closed** (503) if unset.
+- **Database**: PostgreSQL 17, database `usamis`.
 
-The Maven build was authored for Java 17. Use a Java 17 or newer JDK and verify
-the active tools with `java -version` and `mvn -version`.
-
-### 2. Database Setup
-```bash
-# Create database and user
-psql -U postgres
-CREATE DATABASE usamis;
-CREATE USER usamis_user WITH PASSWORD 'your_secure_password';
-GRANT ALL PRIVILEGES ON DATABASE usamis TO usamis_user;
-\q
-
-# Apply schema and seed data
-psql -U usamis_user -d usamis -f src/main/resources/schema.sql
-psql -U usamis_user -d usamis -f src/main/resources/seed.sql
+```
+Browser ──HTTP──► :8080 Java (Servlet + embedded Tomcat)
+                    ├─ AuthFilter (session + RBAC on /api/*)
+                    ├─ 14 servlets / 32 URL patterns
+                    ├─ DAOs → PostgreSQL (JDBC)
+                    └─ AiClient ──HTTP+token──► :8099 FastAPI ──► PyTorch models
 ```
 
-### 3. Configure local DB credentials
-Create the ignored local configuration from the committed example:
-```bash
-cp src/main/resources/db.properties.example src/main/resources/db.properties
-```
+### Ports
 
-Then edit `src/main/resources/db.properties` with your local values:
-```properties
-db.url=jdbc:postgresql://localhost:5432/usamis
-db.user=usamis_user
-db.password=your_secure_password
-```
-
-Never commit `db.properties`, passwords, or connection strings. The repository
-only contains `db.properties.example` with placeholder values.
-
-### 4. Build
-```bash
-cd java/
-mvn clean package -DskipTests
-```
-
-### 5. Run locally
-```bash
-# Option A: run with the Maven Tomcat plugin
-mvn tomcat10:run
-```
-
-For a separately installed Tomcat 10 server:
-```bash
-# Copy the WAR to Tomcat's webapps directory
-cp target/usamis.war $TOMCAT_HOME/webapps/
-
-# Start Tomcat using its normal startup script.
-```
-
-### 6. Access
-- Frontend: `http://localhost:8080/usamis/`
-- API:      `http://localhost:8080/usamis/api/health`
+| Port | Service | Exposure |
+|---|---|---|
+| 8080 | Java app | public (dev) |
+| 8099 | AI micro-service | loopback only |
+| 5432 | PostgreSQL | local |
 
 ---
 
-## Demo Accounts (seed data)
+## Prerequisites
 
-| Role           | Username   | Password  |
-|----------------|------------|-----------|
-| Administrator  | admin001   | admin123  |
-| Registrar      | reg001     | reg123    |
-| Lecturer       | lec001     | lec123    |
-| Finance Officer| fin001     | fin123    |
-| Student        | stu001     | stu123    |
+- **JDK 17+** (compile & run the servlets)
+- **PostgreSQL 16/17** with a `usamis` database; run
+  `java/src/main/resources/schema.sql`, then `ai_migration.sql`
+- **Python 3.11+** for the AI service
+- The AI venv at `D:\usamis-ai\venv` (see `ai-service/README.md`)
 
-> **Note:** The seed.sql uses pre-computed BCrypt hashes. For the demo frontend,
-> authentication is simulated client-side. In production, all auth goes through
-> `POST /api/auth/login`.
+### Configuration
 
-These accounts are intentionally disposable demo data. Change or remove them
-before any shared or public deployment.
+Secrets/config live in **git-ignored** files. Copy the templates and edit:
 
-## GitHub and hosting
+```
+java/src/main/resources/db.properties.example   ->  db.properties
+java/src/main/resources/ai.properties.example   ->  ai.properties
+ai-service/.env.example                         ->  (export vars in your shell)
+```
 
-GitHub can host this source code, but GitHub Pages cannot run the Java servlet
-backend or PostgreSQL database. A live deployment needs a Tomcat-compatible
-host plus PostgreSQL (or a container platform that supports both). Until such
-a deployment is configured and its health endpoint is checked, the only
-verified run path is local: `http://localhost:8080/usamis/` and
-`http://localhost:8080/usamis/api/health`.
+`.gitignore` already excludes `db.properties`, `ai.properties`, and `ai-service/.env`.
 
 ---
 
-## Security Features
+## Modules
 
-| Feature              | Implementation                                   |
-|----------------------|--------------------------------------------------|
-| Password hashing     | BCrypt cost=12 (`jbcrypt`)                       |
-| SQL injection        | All queries use `PreparedStatement`              |
-| Session management   | Server-side sessions, HttpOnly cookies           |
-| RBAC                 | `AuthFilter` + per-servlet permission checks     |
-| Audit trail          | Every write logged to `audit_log` table          |
-| Input validation     | `ValidationUtil` + DB constraints as last resort |
-| Rate limiting        | In-memory counter (use Redis in production)      |
-| Least privilege      | Users get minimum permissions for their role     |
+| # | Module | Users |
+|---|---|---|
+| M-01 | Authentication & Authorization | all |
+| M-02 | User & Role Management | admin |
+| M-03 | Student Records | admin, registrar |
+| M-04 | Course Catalog | admin, registrar |
+| M-05 | Enrollment | admin, registrar |
+| M-06 | Grades & Transcripts | admin, lecturer |
+| M-07 | Fees & Payments | admin, finance |
+| M-08 | Reports & Dashboard | admin, registrar, finance |
+| M-09 | System Audit Log | admin |
+| M-10 | AI Decision Support | admin, registrar, lecturer, finance (student self-scoped) |
 
 ---
 
-## AI Module (decision-support analytics)
-
-A separate **Python FastAPI** micro-service adds deep-learning analytics without
-touching the Java/PostgreSQL stack. The Java backend authenticates the user,
-checks permissions, then calls the AI service over loopback with a shared token.
-The AI service holds **no DB credentials** — features arrive in the request body.
-
-### What it does
-
-| Capability           | Model   | Endpoint (AI service)          | Java endpoint                  |
-|----------------------|---------|--------------------------------|--------------------------------|
-| Performance prediction | MLP   | POST /api/v1/predict/performance | POST /api/ai/predict/{id}     |
-| Enrollment forecasting | LSTM  | POST /api/v1/forecast/enrollment | GET /api/ai/forecast/{id\|all} |
-| Course recommendations | Graph | POST /api/v1/recommend/courses   | GET /api/ai/recommend/{id}    |
-| Service health         | —     | GET  /health                    | GET /api/ai/status            |
-| Prediction history     | —     | —                              | GET /api/ai/insights          |
-| At-risk queue          | —     | —                              | GET /api/ai/insights/at-risk  |
-
-`/api/ai/forecast/{id}` forecasts a course's active-enrollment trend (or the whole
-institution with `all`); it returns `422` when fewer than 4 semesters of history exist,
-which is the honest answer rather than a fabricated curve. `/api/ai/recommend/{id}`
-ranks eligible courses from the live catalog + co-enrollment graph.
-
-### Honesty about accuracy
-
-The bundled models are trained on the deterministic **synthetic** generator
-(`ai-service/ai_service/synthetic.py`) — real accuracy can only be claimed after
-training on real historical records. Every prediction carries `model_version` and
-`trained_on`, and the UI labels predictions as indicative, not authoritative.
-On synthetic data the MLP beats a naive mean baseline but sits close to (slightly
-under) a strong hand-tuned coursework heuristic — an honest, expected result.
-
-### Directory layout
+## Tests & verification
 
 ```
-ai-service/                    # Python AI service (independent runtime)
-├── ai_service/                # package: app, mlp, lstm, graph, synthetic, baseline
-├── train_models.py            # trains + persists models, prints honest baselines
-├── tests/                     # pytest suite (14 tests, runs without torch too)
-├── requirements.txt
-├── .env.example               # AI_SERVICE_TOKEN, AI_MODELS_DIR
-└── run-ai-service.cmd         # launcher (uses D:\usamis-ai on this dev box)
-
-java/src/main/java/com/usamis/
-├── ai/                        # AiClient, AiService, AiPredictionDAO
-├── model/AiModels.java        # AI DTOs
-└── servlet/AiServlet.java     # /api/ai/* endpoints + RBAC
-
-java/src/main/resources/ai_migration.sql   # ai_prediction table + VIEW_AI/MANAGE_AI perms
-java/src/main/resources/ai.properties.example
+tools\smoke-test.ps1 -Base http://127.0.0.1:8080/usamis      REM 23/23
+tools\verify-ai.py  --base ... --ai ... --token <token>      REM 19/19
+pytest ai-service/tests                                       REM 14/14
 ```
 
-### Setup
+Full evidence: `docs/QA_Verification_Log.md`.
+Reconciled report: `docs/MIS_Report_Reconciled_v1.1.md`.
+Diagrams: `docs/diagrams/` (F1–F13).
 
-```bash
-# 1. AI service (Python 3.11+, install deps, train, run)
-cd ai-service
-py -m venv .venv && .venv\Scripts\activate      # Windows
-pip install -r requirements.txt
-pip install torch --index-url https://download.pytorch.org/whl/cpu
-python train_models.py                           # writes models/*.pt
-set AI_SERVICE_TOKEN=<long random value>
-uvicorn ai_service.app:app --host 127.0.0.1 --port 8099
+---
 
-# 2. Java side
-cp java/src/main/resources/ai.properties.example java/src/main/resources/ai.properties
-#   edit ai.properties: ai.service.token = <same token>
-# 3. DB
-psql -U usamis_user -d usamis -f java/src/main/resources/ai_migration.sql
+## Repository layout
+
 ```
-
-### Security
-
-- AI service binds loopback, requires `X-AI-Service-Token` (constant-time compare),
-  and fails closed (503) when no token is configured.
-- `AiClient` reads the token from the git-ignored `ai.properties`; never committed.
-- Student names never leave the Java backend; only aggregate features are sent.
-- `/api/ai/*` endpoints enforce RBAC: staff view aggregates, students see only
-  their own record (self-scope enforced server-side).
-
-### Verify
-
-```bash
-cd ai-service && pytest -q                      # 14 tests
-python tools/verify-ai.py                        # end-to-end (needs running services)
+java/            Java app (servlets, DAOs, models, util) + webapp/index.html (SPA)
+  src/main/resources/  schema.sql, ai_migration.sql, *.properties(.example)
+ai-service/      FastAPI AI micro-service + tests + train_models.py
+tools/           smoke-test.ps1, verify-ai.py, diagram generators
+docs/            SRS addendum, QA log, MIS report, diagrams/
+_verify/         standalone Java probes (Recon/Probe/SeedScale) — not deployed
+run.bat, stop.bat
 ```
 
 ---
 
-## Architecture Decision Records
+## Security notes
 
-**ADR-001: Jakarta Servlets over Spring**
-Chosen for simplicity and alignment with the course scope. Spring adds ~20 dependencies
-and annotation magic that obscures what's happening. Servlets make the HTTP→Java
-mapping explicit and teachable.
-
-**ADR-002: HikariCP for connection pooling**
-Opening a new JDBC connection per request costs ~50ms. HikariCP reduces this to <1ms
-by keeping a pool of warm connections. Pool size=10 handles ~50 concurrent users.
-
-**ADR-003: BCrypt cost=12**
-Cost 12 means ~300ms per hash. Too slow for bulk operations, perfect for login.
-Prevents GPU-based brute force even if the hash is leaked.
-
-**ADR-004: Soft deletes everywhere**
-No `DELETE FROM` on core data. Status flags (`Inactive`, `Dropped`, `Cancelled`)
-preserve referential integrity and maintain a complete audit trail.
-
-**ADR-005: Single-file frontend**
-`index.html` is the deployed frontend entry point. Keep the static assets
-versioned with the application so the WAR remains self-contained.
-
----
-
-© 2024 Jinling Institute of Technology — USAMIS v1.0
-Course: Management Information Systems · Database Systems
+- Passwords are stored as **BCrypt (cost 12)** hashes — never plaintext.
+- Session cookie is `HttpOnly`, `SameSite=Strict`, 60-min TTL.
+- `AuthFilter` enforces authentication on `/api/*`; each servlet enforces RBAC.
+- Audit log is append-only; both successful and denied actions are recorded.
+- The AI service is loopback-only, token-gated, and fail-closed.
+- **Demo passwords are predictable** — change them before any real deployment.
