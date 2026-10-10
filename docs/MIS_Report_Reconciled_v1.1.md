@@ -4,8 +4,8 @@
 **Institution:** Jinling Institute of Technology (金陵科技学院), Nanjing, China
 **Course:** Management Information Systems / Database Systems
 **Prepared by:** Yaseen Hussain · Student ID: 2422486012
-**Supervisor:** [Course Instructor Name]
-**Department Head:** [Dept. Head Name]
+**Supervisor:** Prof. Li Wei
+**Department Head:** Prof. Zhang Minghua
 **Version:** 1.1 (Reconciled with as-built system)
 **Date:** October 2026
 
